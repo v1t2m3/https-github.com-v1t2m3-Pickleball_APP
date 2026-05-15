@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Tournament rules
+    match /tournaments/{tournamentId} {
+      allow read: if true; // Public can see tournament info
+      allow create: if isSignedIn() && isValidTournament(request.resource.data);
+      allow update: if isSignedIn() && (
+        request.auth.uid == resource.data.ownerId || 
+        // Allow public to see live score updates (they only read)
+        false 
+      );
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.ownerId;
+
+      match /participants/{participantId} {
+        allow read: if true;
+        allow write: if isSignedIn() && get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.ownerId == request.auth.uid;
+      }
+
+      match /matches/{matchId} {
+        allow read: if true;
+        allow write: if isSignedIn() && get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.ownerId == request.auth.uid;
+      }
+    }
+
+    function isValidTournament(data) {
+      return data.keys().hasAll(['name', 'type', 'status', 'ownerId']) &&
+             data.name is string && data.name.size() > 0 &&
+             data.type in ['round-robin', 'knockout', 'group-to-knockout'] &&
+             data.status in ['open', 'active', 'completed'] &&
+             data.ownerId == request.auth.uid;
+    }
+  }
+}

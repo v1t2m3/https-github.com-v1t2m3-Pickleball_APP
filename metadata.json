@@ -1,0 +1,6 @@
+{
+  "name": "Pickleball Pro Manager",
+  "description": "Comprehensive tournament management for Pickleball: bracket creation, scheduling, live group tables, and a real-time referee scoring panel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
