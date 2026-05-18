@@ -70,7 +70,8 @@ export default function RefereeTab({ tournament, matches }: Props) {
           team2_id: parseInt(selectedTeam2),
           group_id: null,
           is_third_place: false,
-          referee_id: null
+          referee_id: null,
+          status: 'live'
         })
       });
       alert("Khởi tạo trận đấu thành công! Trận đấu đã hiển thị live.");
