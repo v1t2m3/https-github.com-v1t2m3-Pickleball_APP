@@ -1,23 +1,17 @@
 import { useState, useEffect } from 'react';
-import { db } from '../lib/firebase';
-import { 
-  collection, 
-  onSnapshot, 
-  query, 
-  addDoc, 
-  updateDoc, 
-  doc, 
-  deleteDoc 
-} from 'firebase/firestore';
-import { ArrowLeft, Users, Calendar, Trophy, Settings, ChevronRight, Activity } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, Trophy, Settings, ChevronRight, Activity, ListChecks } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Tournament, Participant, Match } from '../types';
-import ParticipantsTab from './tabs/ParticipantsTab';
+
 import ScheduleTab from './tabs/ScheduleTab';
 import BracketTab from './tabs/BracketTab';
 import RefereeTab from './tabs/RefereeTab';
+import TeamsTab from './tabs/TeamsTab';
+import GroupsTab from './tabs/GroupsTab';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { api } from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -26,36 +20,36 @@ function cn(...inputs: ClassValue[]) {
 interface Props {
   tournament: Tournament;
   onBack: () => void;
-  isOwner: boolean;
 }
 
-type Tab = 'participants' | 'schedule' | 'bracket' | 'referee';
+type Tab = 'teams' | 'groups' | 'schedule' | 'bracket' | 'referee';
 
-export default function TournamentView({ tournament, onBack, isOwner }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>('participants');
-  const [participants, setParticipants] = useState<Participant[]>([]);
+export default function TournamentView({ tournament, onBack }: Props) {
+  const [activeTab, setActiveTab] = useState<Tab>('teams');
   const [matches, setMatches] = useState<Match[]>([]);
+  const { isAdmin, isReferee } = useAuth();
+  
+  const isOwner = isAdmin || isReferee; // Both have owner-like permissions for now
+
+  const loadData = async () => {
+    try {
+      const mData = await api(`/tournaments/${tournament.id}/matches`);
+      setMatches(mData);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
-    const pRef = collection(db, 'tournaments', tournament.id, 'participants');
-    const mRef = collection(db, 'tournaments', tournament.id, 'matches');
-
-    const unsubP = onSnapshot(pRef, (s) => {
-      setParticipants(s.docs.map(doc => ({ id: doc.id, ...doc.data() } as Participant)));
-    });
-
-    const unsubM = onSnapshot(mRef, (s) => {
-      setMatches(s.docs.map(doc => ({ id: doc.id, ...doc.data() } as Match)));
-    });
-
-    return () => {
-      unsubP();
-      unsubM();
-    };
+    loadData();
+    // Poll for updates every 5 seconds as a simple real-time alternative
+    const intervalId = setInterval(loadData, 5000);
+    return () => clearInterval(intervalId);
   }, [tournament.id]);
 
   const tabs = [
-    { id: 'participants', label: 'Participants', icon: Users },
+    { id: 'teams', label: 'Teams / Pairs', icon: Users },
+    { id: 'groups', label: 'Groups & Standings', icon: ListChecks },
     { id: 'schedule', label: 'Schedule', icon: Calendar },
     { id: 'bracket', label: 'Bracket', icon: Trophy },
     ...(isOwner ? [{ id: 'referee', label: 'Referee Hub', icon: Activity }] : []),
@@ -76,21 +70,21 @@ export default function TournamentView({ tournament, onBack, isOwner }: Props) {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-[10px] font-bold uppercase tracking-widest bg-gray-100 px-2 py-0.5 rounded">
-                  {tournament.type}
+                  {tournament.format || 'Format'}
                 </span>
-                {isOwner && <span className="text-[10px] font-bold uppercase tracking-widest bg-[#D4FF00] px-2 py-0.5 rounded italic">Admin</span>}
+                {isOwner && <span className="text-[10px] font-bold uppercase tracking-widest bg-[#D4FF00] px-2 py-0.5 rounded italic">Staff</span>}
               </div>
               <h1 className="text-2xl font-bold tracking-tight uppercase">{tournament.name}</h1>
             </div>
           </div>
 
-          <div className="flex bg-gray-100 p-1 rounded-xl">
+          <div className="flex bg-gray-100 p-1 rounded-xl overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all",
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap",
                   activeTab === tab.id 
                     ? "bg-white text-black shadow-sm" 
                     : "text-gray-500 hover:text-gray-700"
@@ -113,10 +107,16 @@ export default function TournamentView({ tournament, onBack, isOwner }: Props) {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            {activeTab === 'participants' && (
-              <ParticipantsTab 
-                tournament={tournament} 
-                participants={participants} 
+
+            {activeTab === 'teams' && (
+              <TeamsTab 
+                tournament={tournament}
+                isOwner={isOwner} 
+              />
+            )}
+            {activeTab === 'groups' && (
+              <GroupsTab 
+                tournament={tournament}
                 isOwner={isOwner} 
               />
             )}
@@ -124,7 +124,6 @@ export default function TournamentView({ tournament, onBack, isOwner }: Props) {
               <ScheduleTab 
                 tournament={tournament} 
                 matches={matches} 
-                participants={participants}
                 isOwner={isOwner} 
               />
             )}
@@ -132,14 +131,12 @@ export default function TournamentView({ tournament, onBack, isOwner }: Props) {
               <BracketTab 
                 tournament={tournament} 
                 matches={matches} 
-                participants={participants}
               />
             )}
             {activeTab === 'referee' && isOwner && (
               <RefereeTab 
                 tournament={tournament} 
                 matches={matches} 
-                participants={participants} 
               />
             )}
           </motion.div>

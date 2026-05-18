@@ -9,6 +9,14 @@ export interface Tournament {
   status: TournamentStatus;
   ownerId: string;
   createdAt: any;
+  banner_url?: string;
+  poster_url?: string;
+  start_time?: string;
+  location?: string;
+  max_participants?: number;
+  match_type?: string;
+  scoring_format?: string;
+  format?: string;
 }
 
 export interface Participant {
@@ -18,14 +26,22 @@ export interface Participant {
 }
 
 export interface Match {
-  id: string;
-  p1Id: string;
-  p2Id: string;
-  p1Score: number;
-  p2Score: number;
+  id: number;
+  tournament_id: number;
+  group_id?: number;
+  court?: string;
+  round: string;
   status: MatchStatus;
-  round: number;
-  group?: string;
-  startTime?: any;
-  winnerId?: string;
+  is_third_place: boolean;
+  team1_id: number;
+  team2_id: number;
+  team1_name?: string;
+  team2_name?: string;
+  score_team1: number;
+  score_team2: number;
+  referee_id?: number;
+  referee_name?: string;
+  serving_team_id?: number;
+  server_number?: number;
+  updated_at?: any;
 }

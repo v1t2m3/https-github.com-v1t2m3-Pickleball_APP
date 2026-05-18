@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { db } from '../../lib/firebase';
-import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { Plus, UserMinus, UserPlus, Hash } from 'lucide-react';
 import { Tournament, Participant } from '../../types';
+import { api } from '../../lib/api';
 
 interface Props {
   tournament: Tournament;
@@ -16,10 +15,11 @@ export default function ParticipantsTab({ tournament, participants, isOwner }: P
   const handleAdd = async () => {
     if (!newName.trim()) return;
     try {
-      await addDoc(collection(db, 'tournaments', tournament.id, 'participants'), {
-        name: newName,
-        seed: participants.length + 1
-      });
+      // Temporarily assuming API endpoint for adding participant
+      // await api(`/tournaments/${tournament.id}/participants`, {
+      //   method: 'POST',
+      //   body: JSON.stringify({ name: newName, seed: participants.length + 1 })
+      // });
       setNewName('');
     } catch (e) {
       console.error(e);
@@ -28,7 +28,7 @@ export default function ParticipantsTab({ tournament, participants, isOwner }: P
 
   const handleRemove = async (id: string) => {
     try {
-      await deleteDoc(doc(db, 'tournaments', tournament.id, 'participants', id));
+      // await api(`/tournaments/${tournament.id}/participants/${id}`, { method: 'DELETE' });
     } catch (e) {
       console.error(e);
     }
