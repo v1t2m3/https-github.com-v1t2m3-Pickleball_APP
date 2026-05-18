@@ -7,10 +7,11 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
   const [teams, setTeams] = useState<any[]>([]);
   const [players, setPlayers] = useState<any[]>([]);
   const [newTeam, setNewTeam] = useState({ name: '', p1: '', p2: '' });
+  const [showAllPlayers, setShowAllPlayers] = useState(false);
 
   const loadData = async () => {
     try {
-      const p = await api('/players');
+      const p = await api(showAllPlayers ? '/players' : `/players?tournament_id=${tournament.id}`);
       setPlayers(p);
       const t = await api(`/tournaments/${tournament.id}/teams`);
       setTeams(t);
@@ -21,7 +22,7 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [showAllPlayers, tournament.id]);
 
   const handleCreateTeam = async () => {
     if (!newTeam.p1) return;
@@ -59,41 +60,53 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
             <Users size={20} /> {isDoubles ? 'PAIR PLAYERS (DOUBLES)' : 'REGISTER PLAYER (SINGLES)'}
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <select 
-              value={newTeam.p1} 
-              onChange={e => setNewTeam({...newTeam, p1: e.target.value})}
-              className="bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none"
-            >
-              <option value="">Select Player 1</option>
-              {players.map(p => <option key={p.id} value={p.id}>{p.name} ({p.gender})</option>)}
-            </select>
-
-            {isDoubles && (
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <select 
-                value={newTeam.p2} 
-                onChange={e => setNewTeam({...newTeam, p2: e.target.value})}
+                value={newTeam.p1} 
+                onChange={e => setNewTeam({...newTeam, p1: e.target.value})}
                 className="bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none"
               >
-                <option value="">Select Player 2</option>
+                <option value="">Select Player 1</option>
                 {players.map(p => <option key={p.id} value={p.id}>{p.name} ({p.gender})</option>)}
               </select>
-            )}
 
-            <input 
-              type="text" 
-              placeholder="Custom Team Name (Optional)" 
-              value={newTeam.name}
-              onChange={e => setNewTeam({...newTeam, name: e.target.value})}
-              className="bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none"
-            />
+              {isDoubles && (
+                <select 
+                  value={newTeam.p2} 
+                  onChange={e => setNewTeam({...newTeam, p2: e.target.value})}
+                  className="bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none"
+                >
+                  <option value="">Select Player 2</option>
+                  {players.map(p => <option key={p.id} value={p.id}>{p.name} ({p.gender})</option>)}
+                </select>
+              )}
 
-            <button 
-              onClick={handleCreateTeam}
-              className="bg-[#0a0a0a] text-white font-bold py-3 rounded-xl hover:bg-[#1a1a1a] flex items-center justify-center gap-2"
-            >
-              <Plus size={18} /> {isDoubles ? 'CREATE PAIR' : 'REGISTER'}
-            </button>
+              <input 
+                type="text" 
+                placeholder="Custom Team Name (Optional)" 
+                value={newTeam.name}
+                onChange={e => setNewTeam({...newTeam, name: e.target.value})}
+                className="bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none"
+              />
+
+              <button 
+                onClick={handleCreateTeam}
+                className="bg-[#0a0a0a] text-white font-bold py-3 rounded-xl hover:bg-[#1a1a1a] flex items-center justify-center gap-2"
+              >
+                <Plus size={18} /> {isDoubles ? 'CREATE PAIR' : 'REGISTER'}
+              </button>
+            </div>
+            
+            <label className="flex items-center gap-2 text-xs font-semibold text-gray-500 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                checked={showAllPlayers} 
+                onChange={(e) => setShowAllPlayers(e.target.checked)}
+                className="rounded border-gray-300 text-[#D4FF00] focus:ring-[#D4FF00] w-4 h-4 cursor-pointer"
+              />
+              Hiển thị tất cả VĐV hệ thống (Bỏ qua lọc theo Giải đấu)
+            </label>
           </div>
         </div>
       )}

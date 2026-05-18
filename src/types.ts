@@ -44,4 +44,5 @@ export interface Match {
   serving_team_id?: number;
   server_number?: number;
   updated_at?: any;
+  group_name?: string;
 }

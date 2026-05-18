@@ -19,6 +19,7 @@ export default function App() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [isCreatingSocial, setIsCreatingSocial] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   
@@ -184,13 +185,48 @@ export default function App() {
               <p className="text-gray-500 font-medium">Join or manage your pickleball events effortlessly.</p>
             </div>
             {(isAdmin || isReferee) && (
-              <button 
-                onClick={() => setIsCreating(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-[#0a0a0a] text-white rounded-xl font-bold hover:bg-[#1a1a1a] transition-colors"
-              >
-                <Plus size={20} />
-                NEW TOURNAMENT
-              </button>
+              <div className="flex flex-wrap gap-3">
+                <button 
+                  onClick={() => {
+                    setIsCreating(true);
+                    setIsCreatingSocial(true);
+                    setNewTournament({
+                      name: '',
+                      type: 'social' as any,
+                      location: '',
+                      max_participants: 20,
+                      banner_url: '',
+                      poster_url: '',
+                      start_time: '',
+                      match_type: 'Doubles',
+                      scoring_format: '11_win_by_2'
+                    });
+                  }}
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-md shadow-indigo-500/20 active:scale-95 text-xs uppercase"
+                >
+                  <span className="text-sm">🎲</span> NEW SOCIAL PLAY
+                </button>
+                <button 
+                  onClick={() => {
+                    setIsCreating(true);
+                    setIsCreatingSocial(false);
+                    setNewTournament({ 
+                      name: '', 
+                      location: '', 
+                      start_time: '', 
+                      max_participants: 16, 
+                      type: 'knockout', 
+                      banner_url: '', 
+                      poster_url: '', 
+                      match_type: 'Doubles', 
+                      scoring_format: '11_win_by_2' 
+                    });
+                  }}
+                  className="flex items-center gap-2 px-6 py-3 bg-[#0a0a0a] text-white rounded-xl font-bold hover:bg-[#1a1a1a] transition-colors text-xs uppercase"
+                >
+                  <Plus size={16} /> NEW TOURNAMENT
+                </button>
+              </div>
             )}
           </div>
 
@@ -281,7 +317,9 @@ export default function App() {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-2xl bg-white rounded-3xl p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
             >
-              <h2 className="text-3xl font-bold mb-6 tracking-tight">CREATE TOURNAMENT</h2>
+              <h2 className="text-3xl font-bold mb-6 tracking-tight">
+                {isCreatingSocial ? 'CREATE SOCIAL PLAY' : 'CREATE TOURNAMENT'}
+              </h2>
               
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -371,25 +409,27 @@ export default function App() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Format</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {(['knockout', 'round-robin', 'round-robin-knockout']).map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => setNewTournament({ ...newTournament, type: type as any })}
-                        className={cn(
-                          "px-4 py-3 rounded-xl font-bold text-xs border-2 transition-all capitalize",
-                          newTournament.type === type 
-                            ? "bg-[#D4FF00]/10 border-[#D4FF00] text-black" 
-                            : "border-gray-100 hover:border-gray-200 text-gray-400"
-                        )}
-                      >
-                        {type.replace(/-/g, ' ')}
-                      </button>
-                    ))}
+                {!isCreatingSocial && (
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Format</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {(['knockout', 'round-robin', 'round-robin-knockout']).map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => setNewTournament({ ...newTournament, type: type as any })}
+                          className={cn(
+                            "px-4 py-3 rounded-xl font-bold text-xs border-2 transition-all capitalize",
+                            newTournament.type === type 
+                              ? "bg-[#D4FF00]/10 border-[#D4FF00] text-black" 
+                              : "border-gray-100 hover:border-gray-200 text-gray-400"
+                          )}
+                        >
+                          {type.replace(/-/g, ' ')}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>

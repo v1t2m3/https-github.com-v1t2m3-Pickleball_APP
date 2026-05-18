@@ -59,7 +59,7 @@ export default function AdminPanel({ onBack, onManageTournament }: Props) {
   };
 
   const [newUser, setNewUser] = useState({ username: '', password: '', role: 'referee' });
-  const [newPlayer, setNewPlayer] = useState({ name: '', phone: '', level: 'Beginner', birth_year: '', gender: 'M', team_name: '' });
+  const [newPlayer, setNewPlayer] = useState({ name: '', phone: '', level: 'Beginner', birth_year: '', gender: 'M', team_name: '', tournament_id: '' });
 
   const fetchData = async () => {
     try {
@@ -129,10 +129,11 @@ export default function AdminPanel({ onBack, onManageTournament }: Props) {
         method: 'POST', 
         body: JSON.stringify({
           ...newPlayer,
-          birth_year: newPlayer.birth_year ? parseInt(newPlayer.birth_year) : null
+          birth_year: newPlayer.birth_year ? parseInt(newPlayer.birth_year) : null,
+          tournament_id: newPlayer.tournament_id ? parseInt(newPlayer.tournament_id) : null
         }) 
       });
-      setNewPlayer({ name: '', phone: '', level: 'Beginner', birth_year: '', gender: 'M', team_name: '' });
+      setNewPlayer({ name: '', phone: '', level: 'Beginner', birth_year: '', gender: 'M', team_name: '', tournament_id: '' });
       fetchData();
     } catch (e) {
       console.error(e);
@@ -255,11 +256,21 @@ export default function AdminPanel({ onBack, onManageTournament }: Props) {
                     <input type="number" placeholder="Birth Year" value={newPlayer.birth_year} onChange={e => setNewPlayer({...newPlayer, birth_year: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#D4FF00]" />
                   </div>
                   <input type="text" placeholder="Team/Club Name" value={newPlayer.team_name} onChange={e => setNewPlayer({...newPlayer, team_name: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#D4FF00]" />
-                  <select value={newPlayer.level} onChange={e => setNewPlayer({...newPlayer, level: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#D4FF00]">
+                   <select value={newPlayer.level} onChange={e => setNewPlayer({...newPlayer, level: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#D4FF00]">
                     <option value="Beginner">Beginner</option>
                     <option value="Intermediate">Intermediate</option>
                     <option value="Advanced">Advanced</option>
                     <option value="Pro">Pro</option>
+                  </select>
+                  <select 
+                    value={newPlayer.tournament_id} 
+                    onChange={e => setNewPlayer({...newPlayer, tournament_id: e.target.value})} 
+                    className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#D4FF00] text-sm"
+                  >
+                    <option value="">Không liên kết (VĐV chung hệ thống)</option>
+                    {tournaments.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
                   </select>
                   <button onClick={handleCreatePlayer} className="w-full bg-[#0a0a0a] text-white font-bold py-3 rounded-xl hover:bg-black flex items-center justify-center gap-2 mt-2">
                     <Plus size={18} /> ADD TO DIRECTORY

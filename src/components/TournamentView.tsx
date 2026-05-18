@@ -47,11 +47,13 @@ export default function TournamentView({ tournament, onBack }: Props) {
     return () => clearInterval(intervalId);
   }, [tournament.id]);
 
+  const isSocial = tournament.format === 'social';
+
   const tabs = [
     { id: 'teams', label: 'Teams / Pairs', icon: Users },
-    { id: 'groups', label: 'Groups & Standings', icon: ListChecks },
+    ...(!isSocial ? [{ id: 'groups', label: 'Groups & Standings', icon: ListChecks }] : []),
     { id: 'schedule', label: 'Schedule', icon: Calendar },
-    { id: 'bracket', label: 'Bracket', icon: Trophy },
+    ...(!isSocial ? [{ id: 'bracket', label: 'Bracket', icon: Trophy }] : []),
     ...(isOwner ? [{ id: 'referee', label: 'Referee Hub', icon: Activity }] : []),
   ] as { id: Tab, label: string, icon: any }[];
 
