@@ -41,8 +41,11 @@ export interface Match {
   score_team2: number;
   referee_id?: number;
   referee_name?: string;
+  referee2_id?: number;
+  referee2_name?: string;
   serving_team_id?: number;
   server_number?: number;
+  match_order?: number;
   updated_at?: any;
   group_name?: string;
 }

@@ -127,6 +127,7 @@ export default function TournamentView({ tournament, onBack }: Props) {
                 tournament={tournament} 
                 matches={matches} 
                 isOwner={isOwner} 
+                onReload={loadData}
               />
             )}
             {activeTab === 'bracket' && (
@@ -139,6 +140,7 @@ export default function TournamentView({ tournament, onBack }: Props) {
               <RefereeTab 
                 tournament={tournament} 
                 matches={matches} 
+                onReload={loadData}
               />
             )}
           </motion.div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tournament } from '../../types';
 import { api } from '../../lib/api';
-import { Plus, Trash2, Users } from 'lucide-react';
+import { Plus, Trash2, Users, Building } from 'lucide-react';
 
 export default function TeamsTab({ tournament, isOwner }: { tournament: Tournament; isOwner: boolean }) {
   const [teams, setTeams] = useState<any[]>([]);
@@ -52,6 +52,23 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
   };
 
   const isDoubles = tournament?.match_type?.toLowerCase()?.includes('doubles') || false;
+
+  // Group teams by club / company / group
+  const groupedTeams = teams.reduce((groups: { [key: string]: any[] }, t) => {
+    const club = t.p1_club || t.p2_club || 'Tự do / Khác';
+    if (!groups[club]) {
+      groups[club] = [];
+    }
+    groups[club].push(t);
+    return groups;
+  }, {});
+
+  // Sort club names alphabetically, keeping "Tự do / Khác" at the end
+  const sortedClubs = Object.keys(groupedTeams).sort((a, b) => {
+    if (a === 'Tự do / Khác') return 1;
+    if (b === 'Tự do / Khác') return -1;
+    return a.localeCompare(b);
+  });
 
   return (
     <div className="space-y-8">
@@ -111,26 +128,59 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {teams.map(t => (
-          <div key={t.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-start hover:border-[#D4FF00] transition-colors">
-            <div>
-              <div className="font-bold text-lg">{t.name}</div>
-              <div className="text-sm text-gray-500 mt-2 flex flex-col gap-1">
-                <span className="flex items-center gap-2">👤 {t.p1_name}</span>
-                {t.p2_name && <span className="flex items-center gap-2">👤 {t.p2_name}</span>}
+      <div className="space-y-10">
+        {sortedClubs.map(clubName => {
+          const clubTeams = groupedTeams[clubName];
+          return (
+            <div key={clubName} className="space-y-4">
+              <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
+                <Building className="text-[#D4FF00] bg-black p-1.5 rounded-lg" size={28} />
+                <div>
+                  <h4 className="font-black text-base sm:text-lg uppercase tracking-tight text-gray-900">
+                    {clubName === 'Tự do / Khác' ? '🌱 ' : '🏢 '}
+                    {clubName}
+                  </h4>
+                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                    {clubTeams.length} cặp / đội tham gia
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {clubTeams.map(t => (
+                  <div key={t.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-start hover:border-[#D4FF00] transition-colors relative overflow-hidden group">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-lg text-gray-900 truncate">{t.name}</div>
+                      <div className="text-sm text-gray-500 mt-3 flex flex-col gap-1.5">
+                        <span className="flex items-center gap-2 truncate">
+                          <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                          <span className="font-semibold text-gray-700">{t.p1_name}</span>
+                          {t.p1_club && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase">{t.p1_club}</span>}
+                        </span>
+                        {t.p2_name && (
+                          <span className="flex items-center gap-2 truncate">
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                            <span className="font-semibold text-gray-700">{t.p2_name}</span>
+                            {t.p2_club && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase">{t.p2_club}</span>}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {isOwner && (
+                      <button onClick={() => handleDelete(t.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-full active:scale-95 transition-transform">
+                        <Trash2 size={18} />
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
-            {isOwner && (
-              <button onClick={() => handleDelete(t.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-full">
-                <Trash2 size={18} />
-              </button>
-            )}
-          </div>
-        ))}
+          );
+        })}
+
         {teams.length === 0 && (
-           <div className="col-span-full py-12 text-center border-2 border-dashed border-gray-200 rounded-3xl text-gray-400">
-             No teams/players registered yet.
+           <div className="py-12 text-center border-2 border-dashed border-gray-200 rounded-3xl text-gray-400">
+             Chưa có cặp đấu / người chơi nào đăng ký tham gia giải đấu này.
            </div>
         )}
       </div>

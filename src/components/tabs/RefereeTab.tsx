@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Play, RotateCcw, Shield, CheckCircle, Trophy, Volume2, Layers } from 'lucide-react';
+import { Play, RotateCcw, Shield, CheckCircle, Trophy, Volume2, Layers, Lock } from 'lucide-react';
 import { Tournament, Match } from '../../types';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { api } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
 import ScoringModal from '../ScoringModal';
 import BracketBuilderModal from '../BracketBuilderModal';
 
@@ -14,13 +15,16 @@ function cn(...inputs: ClassValue[]) {
 interface Props {
   tournament: Tournament;
   matches: Match[];
+  onReload?: () => void;
 }
 
-export default function RefereeTab({ tournament, matches }: Props) {
+export default function RefereeTab({ tournament, matches, onReload }: Props) {
+  const { user, isAdmin } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedScoringMatch, setSelectedScoringMatch] = useState<Match | null>(null);
   const [bracketBuilderOpen, setBracketBuilderOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<string>('all');
+  const [selectedCourtFilter, setSelectedCourtFilter] = useState<string>('all');
   const [selectedTeam1, setSelectedTeam1] = useState<string>('');
   const [selectedTeam2, setSelectedTeam2] = useState<string>('');
   const [selectedCourt, setSelectedCourt] = useState<string>('Sân 1');
@@ -75,7 +79,11 @@ export default function RefereeTab({ tournament, matches }: Props) {
         })
       });
       alert("Khởi tạo trận đấu thành công! Trận đấu đã hiển thị live.");
-      window.location.reload();
+      if (onReload) {
+        onReload();
+      } else {
+        window.location.reload();
+      }
     } catch (e: any) {
       console.error(e);
       alert("Khởi tạo trận đấu thất bại: " + (e.message || "Lỗi không xác định"));
@@ -88,7 +96,11 @@ export default function RefereeTab({ tournament, matches }: Props) {
     setLoading(true);
     try {
       await api(`/tournaments/${tournament.id}/generate`, { method: 'POST' });
-      window.location.reload(); // Quick refresh to show matches
+      if (onReload) {
+        onReload();
+      } else {
+        window.location.reload();
+      }
     } catch (e: any) {
       console.error(e);
       alert("Failed to generate schedule: " + (e.message || "Unknown error"));
@@ -97,14 +109,13 @@ export default function RefereeTab({ tournament, matches }: Props) {
     }
   };
 
-
-
   const completeMatch = async (matchId: number) => {
     try {
        await api(`/tournaments/${tournament.id}/matches/${matchId}`, { 
           method: 'PUT',
           body: JSON.stringify({ status: 'completed' })
        });
+       if (onReload) onReload();
     } catch (e) {
       console.error(e);
     }
@@ -116,9 +127,17 @@ export default function RefereeTab({ tournament, matches }: Props) {
           method: 'PUT',
           body: JSON.stringify({ status: 'live' })
        });
+       if (onReload) onReload();
     } catch (e) {
       console.error(e);
     }
+  };
+
+  // Check if standard referee is assigned to the match
+  const isAssignedReferee = (m: Match) => {
+    if (isAdmin) return true; // Admin has master override access
+    if (!user) return false;
+    return m.referee_id === user.id || m.referee2_id === user.id;
   };
 
   const formatLower = tournament.format?.toLowerCase() || '';
@@ -258,39 +277,74 @@ export default function RefereeTab({ tournament, matches }: Props) {
             .map(m => JSON.stringify({ id: m.group_id, name: m.group_name || `Bảng ${m.group_id}` }))
         )).map(str => JSON.parse(str) as { id: number; name: string });
 
+        // Filter active matches by both Group and Court selection
         const filteredMatches = matches.filter(m => {
           if (m.status === 'completed') return false;
-          if (selectedGroup === 'all') return true;
-          if (selectedGroup === 'knockout') return !m.group_id;
-          return m.group_id?.toString() === selectedGroup;
+          
+          // Group filter
+          const matchesGroup = selectedGroup === 'all' || 
+            (selectedGroup === 'knockout' && !m.group_id) || 
+            (m.group_id?.toString() === selectedGroup);
+            
+          // Court filter
+          const matchesCourt = selectedCourtFilter === 'all' ||
+            (selectedCourtFilter === 'none' && !m.court) ||
+            (m.court === selectedCourtFilter);
+            
+          return matchesGroup && matchesCourt;
         });
+
+        // Sort ascending by match_order so the court referee knows which match is next
+        const sortedMatches = [...filteredMatches].sort((a, b) => (a.match_order || 1) - (b.match_order || 1));
 
         return (
           <div className="grid grid-cols-1 gap-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
               <h3 className="text-2xl font-black uppercase tracking-tighter">REFEREE DASHBOARD</h3>
-              {groups.length > 0 && (
+              
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Court Filter */}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Lọc Bảng:</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Lọc Sân:</span>
                   <select
-                    value={selectedGroup}
-                    onChange={(e) => setSelectedGroup(e.target.value)}
+                    value={selectedCourtFilter}
+                    onChange={(e) => setSelectedCourtFilter(e.target.value)}
                     className="bg-white border border-gray-200 text-sm font-bold rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#D4FF00] shadow-sm cursor-pointer"
                   >
-                    <option value="all">Tất cả bảng đấu</option>
-                    {groups.map(g => (
-                      <option key={g.id} value={g.id.toString()}>{g.name}</option>
-                    ))}
-                    {matches.some(m => !m.group_id) && (
-                      <option value="knockout">Knockout / Nhánh đấu</option>
-                    )}
+                    <option value="all">Tất cả sân</option>
+                    <option value="Sân 1">Sân 1</option>
+                    <option value="Sân 2">Sân 2</option>
+                    <option value="Sân 3">Sân 3</option>
+                    <option value="Sân 4">Sân 4</option>
+                    <option value="Sân 5">Sân 5</option>
+                    <option value="none">Chưa phân sân</option>
                   </select>
                 </div>
-              )}
+
+                {/* Group Filter */}
+                {groups.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Lọc Bảng:</span>
+                    <select
+                      value={selectedGroup}
+                      onChange={(e) => setSelectedGroup(e.target.value)}
+                      className="bg-white border border-gray-200 text-sm font-bold rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#D4FF00] shadow-sm cursor-pointer"
+                    >
+                      <option value="all">Tất cả bảng đấu</option>
+                      {groups.map(g => (
+                        <option key={g.id} value={g.id.toString()}>{g.name}</option>
+                      ))}
+                      {matches.some(m => !m.group_id) && (
+                        <option value="knockout">Knockout / Nhánh đấu</option>
+                      )}
+                    </select>
+                  </div>
+                )}
+              </div>
             </div>
             
             <div className="space-y-6">
-              {filteredMatches.map(m => {
+              {sortedMatches.map(m => {
                 const isServing1 = m.serving_team_id === m.team1_id;
                 const isServing2 = m.serving_team_id === m.team2_id;
                 const targetScore = tournament.scoring_format?.includes('15') ? 15 : tournament.scoring_format?.includes('21') ? 21 : 11;
@@ -299,12 +353,19 @@ export default function RefereeTab({ tournament, matches }: Props) {
                 const team1HasMatchPoint = m.status === 'live' && isServing1 && m.score_team1 >= targetScore - 1 && m.score_team1 - m.score_team2 >= 1;
                 const team2HasMatchPoint = m.status === 'live' && isServing2 && m.score_team2 >= targetScore - 1 && m.score_team2 - m.score_team1 >= 1;
 
+                const isAssigned = isAssignedReferee(m);
+
                 return (
                 <div key={m.id} className={cn(
-                  "bg-white rounded-3xl p-6 md:p-8 border-2 shadow-sm transition-all",
-                  m.status === 'live' ? "border-[#D4FF00] shadow-[0_0_20px_rgba(212,255,0,0.05)]" : "border-gray-100 opacity-70 hover:opacity-100"
+                  "bg-white rounded-3xl p-6 md:p-8 border-2 shadow-sm transition-all relative overflow-hidden",
+                  m.status === 'live' ? "border-[#D4FF00] shadow-[0_0_20px_rgba(212,255,0,0.05)]" : "border-gray-100 opacity-80 hover:opacity-100"
                 )}>
-                  <div className="flex flex-col lg:flex-row gap-6 lg:gap-12 items-center justify-between">
+                  {/* Sân & Thứ tự label */}
+                  <div className="absolute top-0 right-0 py-1.5 px-3 bg-gray-100 text-gray-700 font-extrabold text-[9px] uppercase tracking-wider rounded-bl-xl border-l border-b border-gray-200">
+                    {m.court ? `${m.court} - Trận ${m.match_order || 1}` : (m.group_name || `Round ${m.round}`)}
+                  </div>
+
+                  <div className="flex flex-col lg:flex-row gap-6 lg:gap-12 items-center justify-between mt-2">
                     {/* Read-Only Scores Dashboard */}
                     <div className="flex-1 w-full space-y-4">
                        {/* Player 1 Card */}
@@ -315,7 +376,7 @@ export default function RefereeTab({ tournament, matches }: Props) {
                          <div className="flex items-center gap-3">
                            {isServing1 && (
                              <div className="flex items-center gap-1 bg-[#D4FF00] text-black px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
-                               SERVING {isDoubles ? m.server_number : ''}
+                               SERVE {isDoubles ? m.server_number : ''}
                              </div>
                            )}
                            <span className="text-lg font-bold uppercase truncate max-w-[200px] sm:max-w-xs">{m.team1_name || 'TBD'}</span>
@@ -327,7 +388,7 @@ export default function RefereeTab({ tournament, matches }: Props) {
                          </div>
                          <span className="text-4xl font-black tabular-nums">{m.score_team1}</span>
                        </div>
-
+ 
                        {/* Player 2 Card */}
                        <div className={cn(
                          "flex items-center justify-between p-4 rounded-2xl border transition-all",
@@ -336,7 +397,7 @@ export default function RefereeTab({ tournament, matches }: Props) {
                          <div className="flex items-center gap-3">
                            {isServing2 && (
                              <div className="flex items-center gap-1 bg-[#D4FF00] text-black px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
-                               SERVING {isDoubles ? m.server_number : ''}
+                               SERVE {isDoubles ? m.server_number : ''}
                              </div>
                            )}
                            <span className="text-lg font-bold uppercase truncate max-w-[200px] sm:max-w-xs">{m.team2_name || 'TBD'}</span>
@@ -348,11 +409,24 @@ export default function RefereeTab({ tournament, matches }: Props) {
                          </div>
                          <span className="text-4xl font-black tabular-nums">{m.score_team2}</span>
                        </div>
-                    </div>
 
+                       {/* Assigned Referee Indicator */}
+                       {(m.referee_name || m.referee2_name) && (
+                         <div className="text-[10px] font-bold text-gray-400 uppercase pl-1">
+                           👮 TRỌNG TÀI CHẤM: {m.referee_name || 'N/A'}{m.referee2_name ? ` & ${m.referee2_name}` : ''}
+                         </div>
+                       )}
+                    </div>
+ 
                     {/* Actions Column */}
                     <div className="w-full lg:w-80 flex flex-col gap-3">
-                      {m.status === 'upcoming' ? (
+                      {!isAssigned ? (
+                        <div className="bg-red-50 text-red-600 border border-red-100 p-4 rounded-2xl text-center space-y-2">
+                          <Lock className="mx-auto" size={24} />
+                          <div className="text-xs font-black uppercase tracking-wider">CHƯA ĐƯỢC PHÂN CÔNG</div>
+                          <div className="text-[10px] opacity-80">Trọng tài chưa được phân quyền điều khiển trận đấu này. Vui lòng liên hệ Admin.</div>
+                        </div>
+                      ) : m.status === 'upcoming' ? (
                         <button 
                           onClick={() => startMatch(m.id)}
                           className="w-full py-5 bg-[#0a0a0a] text-white rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-black transition-transform active:scale-95"
@@ -380,31 +454,37 @@ export default function RefereeTab({ tournament, matches }: Props) {
                   </div>
                 </div>
               )})}
-              {filteredMatches.length === 0 && (
+              {sortedMatches.length === 0 && (
                 <div className="text-center py-12 bg-white rounded-3xl border border-gray-100 text-gray-400 font-medium">
-                  Không có trận đấu nào đang diễn ra ở bảng này.
+                  Không có trận đấu nào đang chờ hoặc live ở bảng/sân này.
                 </div>
               )}
             </div>
           </div>
         );
       })()}
-
+ 
       {selectedScoringMatch && (
         <ScoringModal
           tournament={tournament}
           match={selectedScoringMatch}
           onClose={() => setSelectedScoringMatch(null)}
-          onUpdate={() => {}}
+          onUpdate={() => {
+            if (onReload) onReload();
+          }}
         />
       )}
-
+ 
       {bracketBuilderOpen && (
         <BracketBuilderModal
           tournament={tournament}
           onClose={() => setBracketBuilderOpen(false)}
           onUpdate={() => {
-            window.location.reload();
+            if (onReload) {
+              onReload();
+            } else {
+              window.location.reload();
+            }
           }}
         />
       )}
