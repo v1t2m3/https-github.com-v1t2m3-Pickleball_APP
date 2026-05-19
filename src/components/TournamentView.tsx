@@ -28,7 +28,7 @@ export default function TournamentView({ tournament, onBack }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('teams');
   const [matches, setMatches] = useState<Match[]>([]);
   const { isAdmin, isReferee } = useAuth();
-  
+
   const isOwner = isAdmin || isReferee; // Both have owner-like permissions for now
 
   const loadData = async () => {
@@ -63,7 +63,7 @@ export default function TournamentView({ tournament, onBack }: Props) {
       <div className="bg-white border-bottom border-gray-200 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={onBack}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
@@ -87,8 +87,8 @@ export default function TournamentView({ tournament, onBack }: Props) {
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap",
-                  activeTab === tab.id 
-                    ? "bg-white text-black shadow-sm" 
+                  activeTab === tab.id
+                    ? "bg-white text-black shadow-sm"
                     : "text-gray-500 hover:text-gray-700"
                 )}
               >
@@ -111,35 +111,35 @@ export default function TournamentView({ tournament, onBack }: Props) {
           >
 
             {activeTab === 'teams' && (
-              <TeamsTab 
+              <TeamsTab
                 tournament={tournament}
-                isOwner={isOwner} 
+                isOwner={isOwner}
               />
             )}
             {activeTab === 'groups' && (
-              <GroupsTab 
+              <GroupsTab
                 tournament={tournament}
-                isOwner={isOwner} 
+                isOwner={isOwner}
               />
             )}
             {activeTab === 'schedule' && (
-              <ScheduleTab 
-                tournament={tournament} 
-                matches={matches} 
-                isOwner={isOwner} 
+              <ScheduleTab
+                tournament={tournament}
+                matches={matches}
+                isOwner={isOwner}
                 onReload={loadData}
               />
             )}
             {activeTab === 'bracket' && (
-              <BracketTab 
-                tournament={tournament} 
-                matches={matches} 
+              <BracketTab
+                tournament={tournament}
+                matches={matches}
               />
             )}
             {activeTab === 'referee' && isOwner && (
-              <RefereeTab 
-                tournament={tournament} 
-                matches={matches} 
+              <RefereeTab
+                tournament={tournament}
+                matches={matches}
                 onReload={loadData}
               />
             )}

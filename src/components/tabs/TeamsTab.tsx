@@ -79,9 +79,9 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
           </h3>
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <select 
-                value={newTeam.p1} 
-                onChange={e => setNewTeam({...newTeam, p1: e.target.value})}
+              <select
+                value={newTeam.p1}
+                onChange={e => setNewTeam({ ...newTeam, p1: e.target.value })}
                 className="bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none"
               >
                 <option value="">Select Player 1</option>
@@ -89,9 +89,9 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
               </select>
 
               {isDoubles && (
-                <select 
-                  value={newTeam.p2} 
-                  onChange={e => setNewTeam({...newTeam, p2: e.target.value})}
+                <select
+                  value={newTeam.p2}
+                  onChange={e => setNewTeam({ ...newTeam, p2: e.target.value })}
                   className="bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none"
                 >
                   <option value="">Select Player 2</option>
@@ -99,30 +99,30 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
                 </select>
               )}
 
-              <input 
-                type="text" 
-                placeholder="Custom Team Name (Optional)" 
+              <input
+                type="text"
+                placeholder="Custom Team Name (Optional)"
                 value={newTeam.name}
-                onChange={e => setNewTeam({...newTeam, name: e.target.value})}
+                onChange={e => setNewTeam({ ...newTeam, name: e.target.value })}
                 className="bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none"
               />
 
-              <button 
+              <button
                 onClick={handleCreateTeam}
                 className="bg-[#0a0a0a] text-white font-bold py-3 rounded-xl hover:bg-[#1a1a1a] flex items-center justify-center gap-2"
               >
                 <Plus size={18} /> {isDoubles ? 'CREATE PAIR' : 'REGISTER'}
               </button>
             </div>
-            
+
             <label className="flex items-center gap-2 text-xs font-semibold text-gray-500 cursor-pointer select-none">
-              <input 
-                type="checkbox" 
-                checked={showAllPlayers} 
+              <input
+                type="checkbox"
+                checked={showAllPlayers}
                 onChange={(e) => setShowAllPlayers(e.target.checked)}
                 className="rounded border-gray-300 text-[#D4FF00] focus:ring-[#D4FF00] w-4 h-4 cursor-pointer"
               />
-              Hiển thị tất cả VĐV hệ thống (Bỏ qua lọc theo Giải đấu)
+              Show all players in system (Ignore tournament filter)
             </label>
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
                     {clubName}
                   </h4>
                   <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                    {clubTeams.length} cặp / đội tham gia
+                    {clubTeams.length} teams participated
                   </span>
                 </div>
               </div>
@@ -179,9 +179,9 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
         })}
 
         {teams.length === 0 && (
-           <div className="py-12 text-center border-2 border-dashed border-gray-200 rounded-3xl text-gray-400">
-             Chưa có cặp đấu / người chơi nào đăng ký tham gia giải đấu này.
-           </div>
+          <div className="py-12 text-center border-2 border-dashed border-gray-200 rounded-3xl text-gray-400">
+            No teams registered yet.
+          </div>
         )}
       </div>
     </div>

@@ -111,11 +111,11 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
 
   const completeMatch = async (matchId: number) => {
     try {
-       await api(`/tournaments/${tournament.id}/matches/${matchId}`, { 
-          method: 'PUT',
-          body: JSON.stringify({ status: 'completed' })
-       });
-       if (onReload) onReload();
+      await api(`/tournaments/${tournament.id}/matches/${matchId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: 'completed' })
+      });
+      if (onReload) onReload();
     } catch (e) {
       console.error(e);
     }
@@ -123,11 +123,11 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
 
   const startMatch = async (matchId: number) => {
     try {
-       await api(`/tournaments/${tournament.id}/matches/${matchId}`, { 
-          method: 'PUT',
-          body: JSON.stringify({ status: 'live' })
-       });
-       if (onReload) onReload();
+      await api(`/tournaments/${tournament.id}/matches/${matchId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: 'live' })
+      });
+      if (onReload) onReload();
     } catch (e) {
       console.error(e);
     }
@@ -149,18 +149,18 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
       {tournament.format === 'social' && (
         <div className="bg-white p-6 md:p-8 rounded-3xl border shadow-sm space-y-6">
           <div className="flex items-center gap-3">
-             <Trophy className="text-purple-600 bg-purple-100 p-2 rounded-2xl" size={42} />
-             <div>
-               <h3 className="text-lg font-black uppercase tracking-tight text-gray-900">SOCIAL MATCHMAKER & RANDOM SEED 🎲</h3>
-               <p className="text-xs text-gray-400 font-medium">Bốc thăm ngẫu nhiên hoặc ghép cặp thủ công siêu tốc để bắt đầu trận đấu live ngay lập tức.</p>
-             </div>
+            <Trophy className="text-purple-600 bg-purple-100 p-2 rounded-2xl" size={42} />
+            <div>
+              <h3 className="text-lg font-black uppercase tracking-tight text-gray-900">SOCIAL MATCHMAKER & RANDOM SEED 🎲</h3>
+              <p className="text-xs text-gray-400 font-medium">Randomly select or manually pair teams to start live matches immediately.</p>
+            </div>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Chọn Sân</label>
-              <select 
-                value={selectedCourt} 
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Select Court</label>
+              <select
+                value={selectedCourt}
                 onChange={e => setSelectedCourt(e.target.value)}
                 className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#D4FF00] font-bold text-sm"
               >
@@ -171,15 +171,15 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
                 <option value="Sân 5">Sân 5</option>
               </select>
             </div>
-            
+
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Đội / Cặp Đấu 1</label>
-              <select 
-                value={selectedTeam1} 
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Team / Pair 1</label>
+              <select
+                value={selectedTeam1}
                 onChange={e => setSelectedTeam1(e.target.value)}
                 className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#D4FF00] font-bold text-sm truncate"
               >
-                <option value="">-- Chọn Đội 1 --</option>
+                <option value="">-- Select Team 1 --</option>
                 {registeredTeams.map(t => (
                   <option key={t.id} value={t.id}>{t.name} ({t.p1_name} {t.p2_name ? `& ${t.p2_name}` : ''})</option>
                 ))}
@@ -187,33 +187,33 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
             </div>
 
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Đội / Cặp Đấu 2</label>
-              <select 
-                value={selectedTeam2} 
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Team / Pair 2</label>
+              <select
+                value={selectedTeam2}
                 onChange={e => setSelectedTeam2(e.target.value)}
                 className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#D4FF00] font-bold text-sm truncate"
               >
-                <option value="">-- Chọn Đội 2 --</option>
+                <option value="">-- Select Team 2 --</option>
                 {registeredTeams.map(t => (
                   <option key={t.id} value={t.id}>{t.name} ({t.p1_name} {t.p2_name ? `& ${t.p2_name}` : ''})</option>
                 ))}
               </select>
             </div>
-            
+
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={handleRandomMatch}
                 className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all shadow-md shadow-indigo-500/10"
               >
-                🎲 NGẪU NHIÊN
+                🎲 RANDOM
               </button>
-              
-              <button 
+
+              <button
                 onClick={handleCreateSocialMatch}
                 disabled={loading}
                 className="flex-1 py-3 bg-black hover:bg-gray-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all"
               >
-                🚀 GHÉP TRẬN LIVE
+                🚀 CREATE LIVE MATCH
               </button>
             </div>
           </div>
@@ -225,14 +225,14 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
           <Layers className="mx-auto text-gray-300" size={48} />
           <h3 className="text-3xl font-black mb-2 uppercase tracking-tight">TOURNAMENT SETUP</h3>
           <p className="text-gray-500 mb-8 max-w-md mx-auto font-medium text-sm">
-            {isKnockout 
+            {isKnockout
               ? "Hãy bốc thăm hạt giống thủ công để vẽ nhánh đấu tùy chọn, hoặc click sinh lịch tự động ngẫu nhiên."
               : "Khởi tạo bảng đấu và lịch thi đấu vòng bảng. (Quản trị viên có thể chia bảng và gán đội thủ công ở tab Groups trước)."
             }
           </p>
-          
+
           <div className="flex flex-wrap gap-4 justify-center">
-            <button 
+            <button
               onClick={generateSchedule}
               disabled={loading}
               className="px-8 py-4 bg-[#D4FF00] hover:bg-[#bce600] text-black rounded-2xl font-black text-sm hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100 uppercase tracking-tight shadow-sm"
@@ -241,11 +241,11 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
             </button>
 
             {isKnockout && (
-              <button 
+              <button
                 onClick={() => setBracketBuilderOpen(true)}
                 className="px-8 py-4 bg-black hover:bg-gray-800 text-white rounded-2xl font-black text-sm hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100 uppercase tracking-tight shadow-sm"
               >
-                BỐC THĂM THỦ CÔNG / VẼ NHÁNH
+                MANUAL DRAWING / DRAW BRACKET
               </button>
             )}
           </div>
@@ -257,15 +257,15 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
           <div className="flex items-center gap-3">
             <Trophy className="text-[#D4FF00] bg-black p-2 rounded-2xl" size={40} />
             <div>
-              <h4 className="font-black text-sm uppercase tracking-tight text-gray-900">VẼ NHÁNH ĐẤU LOẠI TRỰC TIẾP (KNOCKOUT BRACKET)</h4>
-              <p className="text-[10px] text-gray-400 font-medium">Tạo sơ đồ nhánh bán kết/tứ kết loại trực tiếp chéo bảng (Nhất bảng này gặp Nhì bảng kia) hoặc thủ công.</p>
+              <h4 className="font-black text-sm uppercase tracking-tight text-gray-900">DRAW KNOCKOUT BRACKET</h4>
+              <p className="text-[10px] text-gray-400 font-medium">Create a knockout bracket for the semifinals/quarterfinals, crossing over between groups (Winner of this group meets Runner-up of that group) or manually.</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => setBracketBuilderOpen(true)}
             className="px-6 py-3.5 bg-[#D4FF00] hover:bg-[#bce600] text-black rounded-xl font-black text-xs hover:scale-105 transition-all shadow-sm shadow-[#D4FF00]/15 uppercase tracking-wider whitespace-nowrap"
           >
-            VẼ NHÁNH ĐẤU KNOCKOUT
+            DRAW KNOCKOUT BRACKET
           </button>
         </div>
       )}
@@ -280,17 +280,17 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
         // Filter active matches by both Group and Court selection
         const filteredMatches = matches.filter(m => {
           if (m.status === 'completed') return false;
-          
+
           // Group filter
-          const matchesGroup = selectedGroup === 'all' || 
-            (selectedGroup === 'knockout' && !m.group_id) || 
+          const matchesGroup = selectedGroup === 'all' ||
+            (selectedGroup === 'knockout' && !m.group_id) ||
             (m.group_id?.toString() === selectedGroup);
-            
+
           // Court filter
           const matchesCourt = selectedCourtFilter === 'all' ||
             (selectedCourtFilter === 'none' && !m.court) ||
             (m.court === selectedCourtFilter);
-            
+
           return matchesGroup && matchesCourt;
         });
 
@@ -301,7 +301,7 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
           <div className="grid grid-cols-1 gap-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
               <h3 className="text-2xl font-black uppercase tracking-tighter">REFEREE DASHBOARD</h3>
-              
+
               <div className="flex flex-wrap items-center gap-3">
                 {/* Court Filter */}
                 <div className="flex items-center gap-2">
@@ -311,38 +311,38 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
                     onChange={(e) => setSelectedCourtFilter(e.target.value)}
                     className="bg-white border border-gray-200 text-sm font-bold rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#D4FF00] shadow-sm cursor-pointer"
                   >
-                    <option value="all">Tất cả sân</option>
-                    <option value="Sân 1">Sân 1</option>
-                    <option value="Sân 2">Sân 2</option>
-                    <option value="Sân 3">Sân 3</option>
-                    <option value="Sân 4">Sân 4</option>
-                    <option value="Sân 5">Sân 5</option>
-                    <option value="none">Chưa phân sân</option>
+                    <option value="all">All Courts</option>
+                    <option value="Sân 1">Court 1</option>
+                    <option value="Sân 2">Court 2</option>
+                    <option value="Sân 3">Court 3</option>
+                    <option value="Sân 4">Court 4</option>
+                    <option value="Sân 5">Court 5</option>
+                    <option value="none">Unassigned</option>
                   </select>
                 </div>
 
                 {/* Group Filter */}
                 {groups.length > 0 && (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Lọc Bảng:</span>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Filter Group:</span>
                     <select
                       value={selectedGroup}
                       onChange={(e) => setSelectedGroup(e.target.value)}
                       className="bg-white border border-gray-200 text-sm font-bold rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#D4FF00] shadow-sm cursor-pointer"
                     >
-                      <option value="all">Tất cả bảng đấu</option>
+                      <option value="all">All Groups</option>
                       {groups.map(g => (
                         <option key={g.id} value={g.id.toString()}>{g.name}</option>
                       ))}
                       {matches.some(m => !m.group_id) && (
-                        <option value="knockout">Knockout / Nhánh đấu</option>
+                        <option value="knockout">Knockout / Bracket</option>
                       )}
                     </select>
                   </div>
                 )}
               </div>
             </div>
-            
+
             <div className="space-y-6">
               {sortedMatches.map(m => {
                 const isServing1 = m.serving_team_id === m.team1_id;
@@ -356,114 +356,115 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
                 const isAssigned = isAssignedReferee(m);
 
                 return (
-                <div key={m.id} className={cn(
-                  "bg-white rounded-3xl p-6 md:p-8 border-2 shadow-sm transition-all relative overflow-hidden",
-                  m.status === 'live' ? "border-[#D4FF00] shadow-[0_0_20px_rgba(212,255,0,0.05)]" : "border-gray-100 opacity-80 hover:opacity-100"
-                )}>
-                  {/* Sân & Thứ tự label */}
-                  <div className="absolute top-0 right-0 py-1.5 px-3 bg-gray-100 text-gray-700 font-extrabold text-[9px] uppercase tracking-wider rounded-bl-xl border-l border-b border-gray-200">
-                    {m.court ? `${m.court} - Trận ${m.match_order || 1}` : (m.group_name || `Round ${m.round}`)}
-                  </div>
-
-                  <div className="flex flex-col lg:flex-row gap-6 lg:gap-12 items-center justify-between mt-2">
-                    {/* Read-Only Scores Dashboard */}
-                    <div className="flex-1 w-full space-y-4">
-                       {/* Player 1 Card */}
-                       <div className={cn(
-                         "flex items-center justify-between p-4 rounded-2xl border transition-all",
-                         isServing1 ? "bg-[#D4FF00]/5 border-[#D4FF00]/30" : "bg-gray-50 border-transparent"
-                       )}>
-                         <div className="flex items-center gap-3">
-                           {isServing1 && (
-                             <div className="flex items-center gap-1 bg-[#D4FF00] text-black px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
-                               SERVE {isDoubles ? m.server_number : ''}
-                             </div>
-                           )}
-                           <span className="text-lg font-bold uppercase truncate max-w-[200px] sm:max-w-xs">{m.team1_name || 'TBD'}</span>
-                           {team1HasMatchPoint && (
-                             <span className="px-2 py-0.5 bg-red-600 text-white font-black text-[9px] tracking-widest rounded-full animate-pulse">
-                               MATCH POINT
-                             </span>
-                           )}
-                         </div>
-                         <span className="text-4xl font-black tabular-nums">{m.score_team1}</span>
-                       </div>
- 
-                       {/* Player 2 Card */}
-                       <div className={cn(
-                         "flex items-center justify-between p-4 rounded-2xl border transition-all",
-                         isServing2 ? "bg-[#D4FF00]/5 border-[#D4FF00]/30" : "bg-gray-50 border-transparent"
-                       )}>
-                         <div className="flex items-center gap-3">
-                           {isServing2 && (
-                             <div className="flex items-center gap-1 bg-[#D4FF00] text-black px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
-                               SERVE {isDoubles ? m.server_number : ''}
-                             </div>
-                           )}
-                           <span className="text-lg font-bold uppercase truncate max-w-[200px] sm:max-w-xs">{m.team2_name || 'TBD'}</span>
-                           {team2HasMatchPoint && (
-                             <span className="px-2 py-0.5 bg-red-600 text-white font-black text-[9px] tracking-widest rounded-full animate-pulse">
-                               MATCH POINT
-                             </span>
-                           )}
-                         </div>
-                         <span className="text-4xl font-black tabular-nums">{m.score_team2}</span>
-                       </div>
-
-                       {/* Assigned Referee Indicator */}
-                       {(m.referee_name || m.referee2_name) && (
-                         <div className="text-[10px] font-bold text-gray-400 uppercase pl-1">
-                           👮 TRỌNG TÀI CHẤM: {m.referee_name || 'N/A'}{m.referee2_name ? ` & ${m.referee2_name}` : ''}
-                         </div>
-                       )}
+                  <div key={m.id} className={cn(
+                    "rounded-3xl p-6 md:p-8 border-2 shadow-sm transition-all relative overflow-hidden",
+                    m.status === 'live' ? "bg-black border-[#D4FF00] shadow-[0_0_20px_rgba(212,255,0,0.05)]" : "bg-white border-gray-100 opacity-80 hover:opacity-100"
+                  )}>
+                    {/* Sân & Thứ tự label */}
+                    <div className="absolute top-0 right-0 py-1.5 px-3 text-gray-700 font-extrabold text-[9px] uppercase tracking-wider rounded-bl-xl border-l border-b border-gray-200">
+                      {m.court ? `${m.court} - Trận ${m.match_order || 1}` : (m.group_name || `Round ${m.round}`)}
                     </div>
- 
-                    {/* Actions Column */}
-                    <div className="w-full lg:w-80 flex flex-col gap-3">
-                      {!isAssigned ? (
-                        <div className="bg-red-50 text-red-600 border border-red-100 p-4 rounded-2xl text-center space-y-2">
-                          <Lock className="mx-auto" size={24} />
-                          <div className="text-xs font-black uppercase tracking-wider">CHƯA ĐƯỢC PHÂN CÔNG</div>
-                          <div className="text-[10px] opacity-80">Trọng tài chưa được phân quyền điều khiển trận đấu này. Vui lòng liên hệ Admin.</div>
+
+                    <div className="flex flex-col lg:flex-row gap-6 lg:gap-12 items-center justify-between mt-2">
+                      {/* Read-Only Scores Dashboard */}
+                      <div className="flex-1 w-full space-y-4">
+                        {/* Player 1 Card */}
+                        <div className={cn(
+                          "flex items-center justify-between p-4 rounded-2xl border transition-all",
+                          isServing1 ? "bg-[#D4FF00]/5 border-[#D4FF00]/30" : "bg-gray-50 border-transparent"
+                        )}>
+                          <div className="flex items-center gap-3">
+                            {isServing1 && (
+                              <div className="flex items-center gap-1 bg-[#D4FF00] text-black px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
+                                SERVE {isDoubles ? m.server_number : ''}
+                              </div>
+                            )}
+                            <span className="text-lg font-bold uppercase truncate max-w-[200px] sm:max-w-xs">{m.team1_name || 'TBD'}</span>
+                            {team1HasMatchPoint && (
+                              <span className="px-2 py-0.5 bg-red-600 text-white font-black text-[9px] tracking-widest rounded-full animate-pulse">
+                                MATCH POINT
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-4xl font-black tabular-nums">{m.score_team1}</span>
                         </div>
-                      ) : m.status === 'upcoming' ? (
-                        <button 
-                          onClick={() => startMatch(m.id)}
-                          className="w-full py-5 bg-[#0a0a0a] text-white rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-black transition-transform active:scale-95"
-                        >
-                          <Play fill="white" size={18} /> BẮT ĐẦU TRẬN ĐẤU
-                        </button>
-                      ) : (
-                        <>
-                          <button 
-                            onClick={() => setSelectedScoringMatch(m)}
-                            className="w-full py-5 bg-[#D4FF00] text-black rounded-2xl font-black flex items-center justify-center gap-2 hover:scale-[1.02] transition-all uppercase tracking-wide shadow-md shadow-[#D4FF00]/10 border border-[#D4FF00]"
+
+                        {/* Player 2 Card */}
+                        <div className={cn(
+                          "flex items-center justify-between p-4 rounded-2xl border transition-all",
+                          isServing2 ? "bg-[#D4FF00]/5 border-[#D4FF00]/30" : "bg-gray-50 border-transparent"
+                        )}>
+                          <div className="flex items-center gap-3">
+                            {isServing2 && (
+                              <div className="flex items-center gap-1 bg-[#D4FF00] text-black px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
+                                SERVE {isDoubles ? m.server_number : ''}
+                              </div>
+                            )}
+                            <span className="text-lg font-bold uppercase truncate max-w-[200px] sm:max-w-xs">{m.team2_name || 'TBD'}</span>
+                            {team2HasMatchPoint && (
+                              <span className="px-2 py-0.5 bg-red-600 text-white font-black text-[9px] tracking-widest rounded-full animate-pulse">
+                                MATCH POINT
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-4xl font-black tabular-nums">{m.score_team2}</span>
+                        </div>
+
+                        {/* Assigned Referee Indicator */}
+                        {(m.referee_name || m.referee2_name) && (
+                          <div className="text-[10px] font-bold text-gray-400 uppercase pl-1">
+                            👮 REFEREE: {m.referee_name || 'N/A'}{m.referee2_name ? ` & ${m.referee2_name}` : ''}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Actions Column */}
+                      <div className="w-full lg:w-80 flex flex-col gap-3">
+                        {!isAssigned ? (
+                          <div className="bg-red-50 text-red-600 border border-red-100 p-4 rounded-2xl text-center space-y-2">
+                            <Lock className="mx-auto" size={24} />
+                            <div className="text-xs font-black uppercase tracking-wider">NOT ASSIGNED</div>
+                            <div className="text-[10px] opacity-80">Referee not assigned to this match. Please contact Admin.</div>
+                          </div>
+                        ) : m.status === 'upcoming' ? (
+                          <button
+                            onClick={() => startMatch(m.id)}
+                            className="w-full py-5 bg-[#0a0a0a] text-white rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-black transition-transform active:scale-95"
                           >
-                            <Shield size={18} /> NHẬP ĐIỂM SỐ
+                            <Play fill="white" size={18} /> START MATCH
                           </button>
-                          
-                          <button 
-                            onClick={() => completeMatch(m.id)}
-                            className="w-full py-3.5 bg-white/5 border border-gray-200 text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition-all uppercase"
-                          >
-                            <CheckCircle size={14} /> HOÀN THÀNH TRẬN ĐẤU
-                          </button>
-                        </>
-                      )}
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => setSelectedScoringMatch(m)}
+                              className="w-full py-5 bg-[#D4FF00] text-black rounded-2xl font-black flex items-center justify-center gap-2 hover:scale-[1.02] transition-all uppercase tracking-wide shadow-md shadow-[#D4FF00]/10 border border-[#D4FF00]"
+                            >
+                              <Shield size={18} /> ENTER SCORE
+                            </button>
+
+                            <button
+                              onClick={() => completeMatch(m.id)}
+                              className="w-full py-3.5 bg-white/5 border border-gray-200 text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition-all uppercase"
+                            >
+                              <CheckCircle size={14} /> COMPLETE MATCH
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )})}
+                )
+              })}
               {sortedMatches.length === 0 && (
                 <div className="text-center py-12 bg-white rounded-3xl border border-gray-100 text-gray-400 font-medium">
-                  Không có trận đấu nào đang chờ hoặc live ở bảng/sân này.
+                  No matches are waiting or live in this group/court.
                 </div>
               )}
             </div>
           </div>
         );
       })()}
- 
+
       {selectedScoringMatch && (
         <ScoringModal
           tournament={tournament}
@@ -474,7 +475,7 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
           }}
         />
       )}
- 
+
       {bracketBuilderOpen && (
         <BracketBuilderModal
           tournament={tournament}

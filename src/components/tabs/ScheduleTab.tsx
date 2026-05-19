@@ -19,7 +19,7 @@ interface Props {
 
 export default function ScheduleTab({ tournament, matches, isOwner, onReload }: Props) {
   const { user, isAdmin } = useAuth();
-  
+
   // Grouping state for upcoming matches
   const [groupBy, setGroupBy] = useState<'none' | 'group' | 'court'>('none');
 
@@ -127,7 +127,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                   <div className="absolute top-0 right-0 py-2 px-4 bg-[#D4FF00] text-black font-black text-[10px] uppercase tracking-widest rounded-bl-xl flex items-center gap-2">
                     <span>{m.court ? `${m.court} - Trận ${m.match_order || 1}` : (m.group_name || `Vòng ${m.round}`)}</span>
                     {isAdmin && (
-                      <button 
+                      <button
                         onClick={() => handleOpenScheduler(m)}
                         className="p-1 hover:bg-black/10 rounded text-black transition-colors"
                         title="Sắp xếp sân & Phân quyền"
@@ -169,7 +169,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                     <span className="text-[10px] font-bold tracking-widest opacity-60 uppercase">Match in Progress • Round {m.round}</span>
                     {(m.referee_name || m.referee2_name) && (
                       <span className="text-[9px] font-bold tracking-wider text-[#D4FF00]/80 uppercase">
-                        👮 Trọng tài: {m.referee_name || 'N/A'}{m.referee2_name ? ` & ${m.referee2_name}` : ''}
+                        👮 Referee: {m.referee_name || 'N/A'}{m.referee2_name ? ` & ${m.referee2_name}` : ''}
                       </span>
                     )}
                   </div>
@@ -188,24 +188,24 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
             UPCOMING FIXTURES
           </h3>
           <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl self-start sm:self-auto">
-            <span className="text-xs text-gray-500 font-bold px-2 uppercase tracking-wider hidden md:inline">Phân nhóm:</span>
+            <span className="text-xs text-gray-500 font-bold px-2 uppercase tracking-wider hidden md:inline">Group:</span>
             <button
               onClick={() => setGroupBy('none')}
               className={cn("px-3 py-1.5 text-xs font-bold rounded-lg transition-all", groupBy === 'none' ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black")}
             >
-              Tất cả
+              All
             </button>
             <button
               onClick={() => setGroupBy('group')}
               className={cn("px-3 py-1.5 text-xs font-bold rounded-lg transition-all", groupBy === 'group' ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black")}
             >
-              Bảng đấu
+              Groups
             </button>
             <button
               onClick={() => setGroupBy('court')}
               className={cn("px-3 py-1.5 text-xs font-bold rounded-lg transition-all", groupBy === 'court' ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-black")}
             >
-              Sân đấu
+              Courts
             </button>
           </div>
         </div>
@@ -226,7 +226,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                 <div className="flex items-center gap-4">
                   {m.court && (
                     <span className="text-[10px] font-bold font-mono bg-yellow-50 text-yellow-600 px-2.5 py-1 rounded-full uppercase">
-                      🏟️ {m.court} - Trận {m.match_order || 1}
+                      🏟️ {m.court} - Match {m.match_order || 1}
                     </span>
                   )}
                   {(m.referee_name || m.referee2_name) && (
@@ -235,7 +235,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                     </span>
                   )}
                   {isAdmin && (
-                    <button 
+                    <button
                       onClick={() => handleOpenScheduler(m)}
                       className="p-2 text-gray-400 hover:text-black hover:bg-gray-50 rounded-xl transition-all"
                       title="Sắp xếp sân & Phân quyền"
@@ -247,7 +247,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                 </div>
               </div>
             ))}
-            {sortedUpcoming.length === 0 && <p className="text-center py-10 text-gray-400 font-medium">Không có trận đấu chờ nào.</p>}
+            {sortedUpcoming.length === 0 && <p className="text-center py-10 text-gray-400 font-medium">No upcoming matches.</p>}
           </div>
         ) : groupBy === 'group' ? (
           <div className="space-y-8">
@@ -277,7 +277,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                       <div className="flex items-center gap-4">
                         {m.court && (
                           <span className="text-[10px] font-bold font-mono bg-yellow-50 text-yellow-600 px-2.5 py-1 rounded-full uppercase">
-                            🏟️ {m.court} - Trận {m.match_order || 1}
+                            🏟️ {m.court} - Match {m.match_order || 1}
                           </span>
                         )}
                         {(m.referee_name || m.referee2_name) && (
@@ -286,7 +286,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                           </span>
                         )}
                         {isAdmin && (
-                          <button 
+                          <button
                             onClick={() => handleOpenScheduler(m)}
                             className="p-2 text-gray-400 hover:text-black hover:bg-gray-50 rounded-xl transition-all"
                             title="Sắp xếp sân & Phân quyền"
@@ -301,7 +301,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                 </div>
               );
             })}
-            {sortedUpcoming.length === 0 && <p className="text-center py-10 text-gray-400 font-medium">Không có trận đấu chờ nào.</p>}
+            {sortedUpcoming.length === 0 && <p className="text-center py-10 text-gray-400 font-medium">No upcoming matches.</p>}
           </div>
         ) : (
           <div className="space-y-8">
@@ -330,7 +330,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="text-[10px] font-bold font-mono bg-yellow-50 text-yellow-600 px-2.5 py-1 rounded-full uppercase">
-                          Trận {m.match_order || 1}
+                          Match {m.match_order || 1}
                         </span>
                         {(m.referee_name || m.referee2_name) && (
                           <span className="text-[10px] font-bold font-mono bg-blue-50 text-blue-500 px-2.5 py-1 rounded-full uppercase max-w-[150px] truncate hidden md:inline">
@@ -338,7 +338,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                           </span>
                         )}
                         {isAdmin && (
-                          <button 
+                          <button
                             onClick={() => handleOpenScheduler(m)}
                             className="p-2 text-gray-400 hover:text-black hover:bg-gray-50 rounded-xl transition-all"
                             title="Sắp xếp sân & Phân quyền"
@@ -353,7 +353,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                 </div>
               );
             })}
-            {sortedUpcoming.length === 0 && <p className="text-center py-10 text-gray-400 font-medium">Không có trận đấu chờ nào.</p>}
+            {sortedUpcoming.length === 0 && <p className="text-center py-10 text-gray-400 font-medium">No upcoming matches.</p>}
           </div>
         )}
       </section>
@@ -365,7 +365,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
             <Trophy className="text-[#D4FF00]" size={24} />
             FINAL RESULTS
           </h3>
-          
+
           <div className="space-y-8">
             {Object.keys(finishedGroupsMap).map(groupName => {
               const groupFinished = finishedGroupsMap[groupName];
@@ -373,7 +373,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                 <div key={groupName} className="space-y-4">
                   <div className="flex items-center gap-2 border-l-4 border-[#D4FF00] pl-3 mb-2">
                     <h4 className="text-xs font-black uppercase tracking-widest text-gray-900">{groupName}</h4>
-                    <span className="text-[10px] font-bold text-gray-400">({groupFinished.length} trận đã đấu)</span>
+                    <span className="text-[10px] font-bold text-gray-400">({groupFinished.length} matches played)</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -386,13 +386,13 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                             Round {m.round} {m.court ? `• ${m.court}` : ''}
                           </span>
                           <div className="flex flex-col gap-2 flex-1">
-                            <div className={cn("flex justify-between items-center text-sm px-2.5 py-1.5 rounded-xl transition-all", p1Won && "bg-gray-50 border-l-4 border-[#D4FF00]")}>
+                            <div className={cn("flex justify-between items-center text-sm px-2.5 py-1.5 rounded-xl transition-all", p1Won && "bg-[#D4FF00]-50 border-l-4 border-[#D4FF00]")}>
                               <span className={cn("font-bold truncate", p1Won ? "text-black" : "text-gray-400")}>
                                 {m.team1_name || 'TBD'}
                               </span>
                               <span className="font-black tabular-nums">{m.score_team1}</span>
                             </div>
-                            <div className={cn("flex justify-between items-center text-sm px-2.5 py-1.5 rounded-xl transition-all", p2Won && "bg-gray-50 border-l-4 border-[#D4FF00]")}>
+                            <div className={cn("flex justify-between items-center text-sm px-2.5 py-1.5 rounded-xl transition-all", p2Won && "bg-[#D4FF00]-50 border-l-4 border-[#D4FF00]")}>
                               <span className={cn("font-bold truncate", p2Won ? "text-black" : "text-gray-400")}>
                                 {m.team2_name || 'TBD'}
                               </span>
@@ -417,7 +417,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
               <h4 className="text-lg font-black uppercase tracking-tight text-gray-900 flex items-center gap-2">
                 <Settings size={20} className="text-[#D4FF00] bg-black p-1 rounded-md" />
-                Lập Lịch & Trọng Tài
+                Schedule & Referee
               </h4>
               <button onClick={() => setSelectedMatchForEdit(null)} className="p-1.5 hover:bg-gray-100 rounded-full text-gray-400">
                 <X size={18} />
@@ -437,24 +437,24 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
             <div className="space-y-4">
               {/* Court Select */}
               <div className="space-y-1.5">
-                <label className="text-xs font-black uppercase tracking-wider text-gray-500">Sân Đấu</label>
+                <label className="text-xs font-black uppercase tracking-wider text-gray-500">Court</label>
                 <select
                   value={editCourt}
                   onChange={e => setEditCourt(e.target.value)}
                   className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none font-bold"
                 >
-                  <option value="">Chưa chọn sân</option>
-                  <option value="Sân 1">Sân 1</option>
-                  <option value="Sân 2">Sân 2</option>
-                  <option value="Sân 3">Sân 3</option>
-                  <option value="Sân 4">Sân 4</option>
-                  <option value="Sân 5">Sân 5</option>
+                  <option value="">No court</option>
+                  <option value="Court 1">Court 1</option>
+                  <option value="Court 2">Court 2</option>
+                  <option value="Court 3">Court 3</option>
+                  <option value="Court 4">Court 4</option>
+                  <option value="Court 5">Court 5</option>
                 </select>
               </div>
 
               {/* Match Order */}
               <div className="space-y-1.5">
-                <label className="text-xs font-black uppercase tracking-wider text-gray-500">Thứ Tự Trận Đấu (Trận thứ m)</label>
+                <label className="text-xs font-black uppercase tracking-wider text-gray-500">Match Order (Match No.)</label>
                 <input
                   type="number"
                   min="1"
@@ -467,13 +467,13 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
 
               {/* Referee 1 */}
               <div className="space-y-1.5">
-                <label className="text-xs font-black uppercase tracking-wider text-gray-500">Trọng Tài 1</label>
+                <label className="text-xs font-black uppercase tracking-wider text-gray-500">Referee 1</label>
                 <select
                   value={editRef1}
                   onChange={e => setEditRef1(e.target.value)}
                   className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none font-bold"
                 >
-                  <option value="">Chưa chọn trọng tài 1</option>
+                  <option value="">No referee 1</option>
                   {refereeUsers.map(u => (
                     <option key={u.id} value={u.id}>{u.username} ({u.role})</option>
                   ))}
@@ -482,13 +482,13 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
 
               {/* Referee 2 */}
               <div className="space-y-1.5">
-                <label className="text-xs font-black uppercase tracking-wider text-gray-500">Trọng Tài 2 (Tối đa 2 người)</label>
+                <label className="text-xs font-black uppercase tracking-wider text-gray-500">Referee 2 (Max 2 person)</label>
                 <select
                   value={editRef2}
                   onChange={e => setEditRef2(e.target.value)}
                   className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none font-bold"
                 >
-                  <option value="">Chưa chọn trọng tài 2</option>
+                  <option value="">No referee 2</option>
                   {refereeUsers.map(u => (
                     <option key={u.id} value={u.id}>{u.username} ({u.role})</option>
                   ))}
@@ -501,13 +501,13 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                 onClick={() => setSelectedMatchForEdit(null)}
                 className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl active:scale-95 transition-transform"
               >
-                HỦY BỎ
+                CANCEL
               </button>
               <button
                 onClick={handleSaveScheduler}
                 className="flex-1 py-3 bg-black hover:bg-neutral-900 text-white font-bold rounded-xl active:scale-95 transition-transform"
               >
-                LƯU CẤU HÌNH
+                SAVE CONFIGURATION
               </button>
             </div>
           </div>

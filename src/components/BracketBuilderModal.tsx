@@ -21,7 +21,7 @@ export default function BracketBuilderModal({ tournament, onClose, onUpdate }: P
   const [teams, setTeams] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
   const [standings, setStandings] = useState<Record<number, any[]>>({});
-  
+
   const [selectedRound, setSelectedRound] = useState<'Semifinals' | 'Quarterfinals' | 'Round of 16'>('Semifinals');
   const [matchups, setMatchups] = useState<Array<{ team1_id: string; team2_id: string }>>([
     { team1_id: '', team2_id: '' },
@@ -36,10 +36,10 @@ export default function BracketBuilderModal({ tournament, onClose, onUpdate }: P
       try {
         const t = await api(`/tournaments/${tournament.id}/teams`);
         setTeams(t);
-        
+
         const formatLower = tournament.format?.toLowerCase() || '';
         const isCombine = formatLower.includes('round-robin & knockout') || formatLower.includes('combination');
-        
+
         if (isCombine) {
           const g = await api(`/tournaments/${tournament.id}/groups`);
           setGroups(g);
@@ -215,11 +215,11 @@ export default function BracketBuilderModal({ tournament, onClose, onUpdate }: P
           <div className="flex items-center gap-3">
             <Layers className="text-[#D4FF00] bg-black p-1.5 rounded-xl" size={32} />
             <div>
-              <h2 className="font-black text-lg uppercase tracking-tight">THIẾT LẬP BỐC THĂM / VẼ NHÁNH ĐẤU</h2>
-              <p className="text-xs text-gray-400 font-medium">Bốc thăm chia hạt giống thủ công hoặc tự động chéo bảng</p>
+              <h2 className="font-black text-lg uppercase tracking-tight">SETUP DRAW / SEEDING</h2>
+              <p className="text-xs text-gray-400 font-medium">Manual draw or auto cross-seed</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
@@ -239,31 +239,31 @@ export default function BracketBuilderModal({ tournament, onClose, onUpdate }: P
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
             <div>
               <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Vòng đấu bắt đầu</label>
-              <select 
+              <select
                 value={selectedRound}
                 onChange={e => setSelectedRound(e.target.value as any)}
                 className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#D4FF00] outline-none font-bold"
               >
-                <option value="Semifinals">Bán kết (Semifinals) - Top 4</option>
-                <option value="Quarterfinals">Tứ kết (Quarterfinals) - Top 8</option>
-                <option value="Round of 16">Vòng 1/8 (Round of 16) - Top 16</option>
+                <option value="Semifinals">Semifinals - Top 4</option>
+                <option value="Quarterfinals">Quarterfinals - Top 8</option>
+                <option value="Round of 16">Round of 16 - Top 16</option>
               </select>
             </div>
 
             <div className="flex gap-3">
               {isCombine && (
-                <button 
+                <button
                   onClick={handleAutoCrossSeed}
                   className="flex-1 py-3 bg-black hover:bg-gray-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-sm"
                 >
-                  <Award size={14} className="text-[#D4FF00]" /> CHÉO BẢNG TỰ ĐỘNG
+                  <Award size={14} className="text-[#D4FF00]" /> AUTO CROSS-SEED
                 </button>
               )}
-              <button 
+              <button
                 onClick={handleRandomDraw}
                 className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95"
               >
-                <RefreshCw size={14} /> BỐC THĂM TỰ ĐỘNG
+                <RefreshCw size={14} /> RANDOM DRAW
               </button>
             </div>
           </div>
@@ -272,25 +272,25 @@ export default function BracketBuilderModal({ tournament, onClose, onUpdate }: P
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
             {matchups.map((m, index) => (
               <div key={index} className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100 space-y-4 relative">
-                <span className="absolute top-3 left-4 text-[9px] font-black tracking-widest text-gray-300">CẶP ĐẤU {index + 1}</span>
-                
+                <span className="absolute top-3 left-4 text-[9px] font-black tracking-widest text-gray-300">MATCH {index + 1}</span>
+
                 {/* Team 1 Selector */}
                 <div className="pt-2">
-                  <label className="text-[9px] font-bold text-gray-400 block mb-1">Đội 1 (Home)</label>
-                  <select 
+                  <label className="text-[9px] font-bold text-gray-400 block mb-1">Team 1 (Home)</label>
+                  <select
                     value={m.team1_id}
                     onChange={e => handleSelectChange(index, 'team1', e.target.value)}
                     className="w-full bg-white border border-gray-100 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-[#D4FF00] outline-none font-bold"
                   >
-                    <option value="">Chọn Đội 1...</option>
-                    
+                    <option value="">Select Team 1...</option>
+
                     {/* Ranked placeholders for transition format */}
                     {isCombine && rankedPlaceholders.map(p => (
                       <option key={`p1-${p.groupName}-${p.rank}`} value={p.teamId ? String(p.teamId) : ''}>
-                        Nhất/Nhì: {p.groupName} - Nhất {p.rank} ({p.teamName})
+                        1st/2nd: {p.groupName} - 1st {p.rank} ({p.teamName})
                       </option>
                     ))}
-                    
+
                     {/* Static registered teams fallback */}
                     <option disabled>──────────</option>
                     {teams.map(t => (
@@ -301,21 +301,21 @@ export default function BracketBuilderModal({ tournament, onClose, onUpdate }: P
 
                 {/* Team 2 Selector */}
                 <div>
-                  <label className="text-[9px] font-bold text-gray-400 block mb-1">Đội 2 (Away)</label>
-                  <select 
+                  <label className="text-[9px] font-bold text-gray-400 block mb-1">Team 2 (Away)</label>
+                  <select
                     value={m.team2_id}
                     onChange={e => handleSelectChange(index, 'team2', e.target.value)}
                     className="w-full bg-white border border-gray-100 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-[#D4FF00] outline-none font-bold"
                   >
-                    <option value="">Chọn Đội 2 (Hoặc TRỐNG nếu Bye)...</option>
-                    
+                    <option value="">Select Team 2 (Or empty for BYE)...</option>
+
                     {/* Ranked placeholders for transition format */}
                     {isCombine && rankedPlaceholders.map(p => (
                       <option key={`p2-${p.groupName}-${p.rank}`} value={p.teamId ? String(p.teamId) : ''}>
-                        Nhất/Nhì: {p.groupName} - Nhất {p.rank} ({p.teamName})
+                        1st/2nd: {p.groupName} - 1st {p.rank} ({p.teamName})
                       </option>
                     ))}
-                    
+
                     {/* Static registered teams fallback */}
                     <option disabled>──────────</option>
                     {teams.map(t => (
@@ -330,18 +330,18 @@ export default function BracketBuilderModal({ tournament, onClose, onUpdate }: P
 
         {/* Footer */}
         <footer className="px-6 py-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
-          <button 
+          <button
             onClick={onClose}
             className="px-6 py-3 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-transform active:scale-95"
           >
             HỦY BỎ
           </button>
-          <button 
+          <button
             onClick={handleSaveBracket}
             disabled={loading}
             className="px-8 py-3 bg-[#D4FF00] hover:bg-[#bce600] text-black font-black rounded-xl text-sm flex items-center gap-2 transition-transform active:scale-95 shadow-sm"
           >
-            <Play fill="black" size={16} /> {loading ? 'DANG KHỞI TẠO...' : 'LƯU NHÁNH ĐẤU'}
+            <Play fill="black" size={16} /> {loading ? 'INITIALIZING...' : 'SAVE BRACKET'}
           </button>
         </footer>
       </div>
