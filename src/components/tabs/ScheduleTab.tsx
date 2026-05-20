@@ -125,7 +125,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                   )}
 
                   <div className="absolute top-0 right-0 py-2 px-4 bg-[#D4FF00] text-black font-black text-[10px] uppercase tracking-widest rounded-bl-xl flex items-center gap-2">
-                    <span>{m.court ? `${m.court} - Trận ${m.match_order || 1}` : (m.group_name || `Vòng ${m.round}`)}</span>
+                    <span>{m.court ? `${m.court} - Match ${m.match_order || 1}` : (m.group_name || `Round ${m.round}`)}</span>
                     {isAdmin && (
                       <button
                         onClick={() => handleOpenScheduler(m)}
@@ -262,7 +262,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                 <div key={groupName} className="space-y-3">
                   <div className="flex items-center gap-2 border-l-4 border-[#D4FF00] pl-3 mb-2">
                     <span className="text-xs font-black uppercase tracking-widest text-gray-900">{groupName}</span>
-                    <span className="text-[10px] font-bold text-gray-400">({groupMatches.length} trận)</span>
+                    <span className="text-[10px] font-bold text-gray-400">({groupMatches.length} Matches)</span>
                   </div>
                   {groupMatches.map(m => (
                     <div key={m.id} className="bg-white border border-gray-100 p-5 rounded-2xl flex items-center justify-between hover:border-[#D4FF00] transition-all">
@@ -321,7 +321,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                   {courtMatches.map(m => (
                     <div key={m.id} className="bg-white border border-gray-100 p-5 rounded-2xl flex items-center justify-between hover:border-[#D4FF00] transition-all">
                       <div className="flex items-center gap-6 flex-1 min-w-0">
-                        <div className="text-[10px] font-bold font-mono text-gray-400 w-16 uppercase">{m.group_name || 'Vòng ' + m.round}</div>
+                        <div className="text-[10px] font-bold font-mono text-gray-400 w-16 uppercase">{m.group_name || 'Round ' + m.round}</div>
                         <div className="flex items-center gap-3 truncate">
                           <span className="font-bold text-lg text-gray-900 truncate">{m.team1_name || 'TBD'}</span>
                           <span className="text-xs font-black italic opacity-20">VS</span>
@@ -373,7 +373,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                 <div key={groupName} className="space-y-4">
                   <div className="flex items-center gap-2 border-l-4 border-[#D4FF00] pl-3 mb-2">
                     <h4 className="text-xs font-black uppercase tracking-widest text-gray-900">{groupName}</h4>
-                    <span className="text-[10px] font-bold text-gray-400">({groupFinished.length} matches played)</span>
+                    <span className="text-[10px] font-bold text-gray-500">({groupFinished.length} matches played)</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -382,17 +382,17 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                       const p2Won = m.score_team2 > m.score_team1;
                       return (
                         <div key={m.id} className="bg-white border border-gray-100 p-5 rounded-2xl flex flex-col justify-between hover:border-[#D4FF00] transition-colors relative">
-                          <span className="text-[8px] font-bold tracking-widest text-gray-400 uppercase mb-2 block">
+                          <span className="text-[8px] font-bold tracking-widest text-gray-500 uppercase mb-2 block">
                             Round {m.round} {m.court ? `• ${m.court}` : ''}
                           </span>
                           <div className="flex flex-col gap-2 flex-1">
-                            <div className={cn("flex justify-between items-center text-sm px-2.5 py-1.5 rounded-xl transition-all", p1Won && "bg-[#D4FF00]-50 border-l-4 border-[#D4FF00]")}>
+                            <div className={cn("flex justify-between items-center text-sm px-2.5 py-1.5 rounded-xl transition-all", p1Won && "bg-[#D4FF00] border-l-4 border-black", p2Won && "bg-gray-100")}>
                               <span className={cn("font-bold truncate", p1Won ? "text-black" : "text-gray-400")}>
                                 {m.team1_name || 'TBD'}
                               </span>
                               <span className="font-black tabular-nums">{m.score_team1}</span>
                             </div>
-                            <div className={cn("flex justify-between items-center text-sm px-2.5 py-1.5 rounded-xl transition-all", p2Won && "bg-[#D4FF00]-50 border-l-4 border-[#D4FF00]")}>
+                            <div className={cn("flex justify-between items-center text-sm px-2.5 py-1.5 rounded-xl transition-all", p2Won && "bg-[#D4FF00] border-l-4 border-black", p1Won && "bg-gray-100")}>
                               <span className={cn("font-bold truncate", p2Won ? "text-black" : "text-gray-400")}>
                                 {m.team2_name || 'TBD'}
                               </span>

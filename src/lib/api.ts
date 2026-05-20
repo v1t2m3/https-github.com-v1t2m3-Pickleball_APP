@@ -3,9 +3,9 @@ const BASE_URL = '/api';
 
 export const api = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token');
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   };
 
   if (token) {

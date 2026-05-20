@@ -281,6 +281,11 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
         const filteredMatches = matches.filter(m => {
           if (m.status === 'completed') return false;
 
+          // Hide matches that don't have both teams determined yet (e.g. TBD in knockout)
+          if (!m.team1_id || !m.team2_id || m.team1_name === 'TBD' || m.team2_name === 'TBD') {
+            return false;
+          }
+
           // Group filter
           const matchesGroup = selectedGroup === 'all' ||
             (selectedGroup === 'knockout' && !m.group_id) ||
@@ -305,7 +310,7 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
               <div className="flex flex-wrap items-center gap-3">
                 {/* Court Filter */}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Lọc Sân:</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Filter Court:</span>
                   <select
                     value={selectedCourtFilter}
                     onChange={(e) => setSelectedCourtFilter(e.target.value)}
@@ -358,11 +363,11 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
                 return (
                   <div key={m.id} className={cn(
                     "rounded-3xl p-6 md:p-8 border-2 shadow-sm transition-all relative overflow-hidden",
-                    m.status === 'live' ? "bg-black border-[#D4FF00] shadow-[0_0_20px_rgba(212,255,0,0.05)]" : "bg-white border-gray-100 opacity-80 hover:opacity-100"
+                    m.status === 'live' ? "bg-gray-800 border-[#D4FF00] shadow-[0_0_20px_rgba(212,255,0,0.05)]" : "bg-gray-400 border-white opacity-80 hover:opacity-100"
                   )}>
                     {/* Sân & Thứ tự label */}
-                    <div className="absolute top-0 right-0 py-1.5 px-3 text-gray-700 font-extrabold text-[9px] uppercase tracking-wider rounded-bl-xl border-l border-b border-gray-200">
-                      {m.court ? `${m.court} - Trận ${m.match_order || 1}` : (m.group_name || `Round ${m.round}`)}
+                    <div className="absolute top-0 right-0 py-1.5 px-3 text-[#D4FF00] font-extrabold text-[11px] uppercase tracking-wider rounded-bl-xl bg-black">
+                      {m.court ? `${m.court} - Match ${m.match_order || 1}` : (m.group_name || `Round ${m.round}`)}
                     </div>
 
                     <div className="flex flex-col lg:flex-row gap-6 lg:gap-12 items-center justify-between mt-2">
@@ -370,8 +375,8 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
                       <div className="flex-1 w-full space-y-4">
                         {/* Player 1 Card */}
                         <div className={cn(
-                          "flex items-center justify-between p-4 rounded-2xl border transition-all",
-                          isServing1 ? "bg-[#D4FF00]/5 border-[#D4FF00]/30" : "bg-gray-50 border-transparent"
+                          "flex items-center justify-between p-4 rounded-2xl border-[2px] transition-all",
+                          isServing1 ? "bg-white border-[#D4FF00] text-black" : "bg-gray border-white text-white"
                         )}>
                           <div className="flex items-center gap-3">
                             {isServing1 && (
@@ -381,7 +386,7 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
                             )}
                             <span className="text-lg font-bold uppercase truncate max-w-[200px] sm:max-w-xs">{m.team1_name || 'TBD'}</span>
                             {team1HasMatchPoint && (
-                              <span className="px-2 py-0.5 bg-red-600 text-white font-black text-[9px] tracking-widest rounded-full animate-pulse">
+                              <span className="px-2 py-0.5 bg-red-600 text-red font-black text-[9px] tracking-widest rounded-full animate-pulse">
                                 MATCH POINT
                               </span>
                             )}
@@ -391,8 +396,8 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
 
                         {/* Player 2 Card */}
                         <div className={cn(
-                          "flex items-center justify-between p-4 rounded-2xl border transition-all",
-                          isServing2 ? "bg-[#D4FF00]/5 border-[#D4FF00]/30" : "bg-gray-50 border-transparent"
+                          "flex items-center justify-between p-4 rounded-2xl border-[2px] transition-all",
+                          isServing2 ? "bg-white border-[#D4FF00] text-black" : "bg-gray border-white text-white"
                         )}>
                           <div className="flex items-center gap-3">
                             {isServing2 && (
@@ -402,7 +407,7 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
                             )}
                             <span className="text-lg font-bold uppercase truncate max-w-[200px] sm:max-w-xs">{m.team2_name || 'TBD'}</span>
                             {team2HasMatchPoint && (
-                              <span className="px-2 py-0.5 bg-red-600 text-white font-black text-[9px] tracking-widest rounded-full animate-pulse">
+                              <span className="px-2 py-0.5 bg-red-600 text-red font-black text-[9px] tracking-widest rounded-full animate-pulse">
                                 MATCH POINT
                               </span>
                             )}
@@ -412,7 +417,7 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
 
                         {/* Assigned Referee Indicator */}
                         {(m.referee_name || m.referee2_name) && (
-                          <div className="text-[10px] font-bold text-gray-400 uppercase pl-1">
+                          <div className="text-[10px] font-bold text-white uppercase pl-1">
                             👮 REFEREE: {m.referee_name || 'N/A'}{m.referee2_name ? ` & ${m.referee2_name}` : ''}
                           </div>
                         )}
@@ -444,7 +449,7 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
 
                             <button
                               onClick={() => completeMatch(m.id)}
-                              className="w-full py-3.5 bg-white/5 border border-gray-200 text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition-all uppercase"
+                              className="w-full py-3.5 bg-white/5 border border-[#D4FF00] text-[#D4FF00] hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition-all uppercase"
                             >
                               <CheckCircle size={14} /> COMPLETE MATCH
                             </button>

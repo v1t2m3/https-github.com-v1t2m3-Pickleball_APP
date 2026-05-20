@@ -59,7 +59,8 @@ export default function AdminPanel({ onBack, onManageTournament }: Props) {
   };
 
   const [newUser, setNewUser] = useState({ username: '', password: '', role: 'referee' });
-  const [newPlayer, setNewPlayer] = useState({ name: '', phone: '', level: 'Beginner', birth_year: '', gender: 'M', team_name: '', tournament_id: '' });
+  const [newPlayer, setNewPlayer] = useState<any>({ name: '', phone: '', level: 'Beginner', birth_year: '', gender: 'M', team_name: '', tournament_ids: [] });
+  const [editingPlayer, setEditingPlayer] = useState<any | null>(null);
 
   const fetchData = async () => {
     try {
@@ -130,10 +131,28 @@ export default function AdminPanel({ onBack, onManageTournament }: Props) {
         body: JSON.stringify({
           ...newPlayer,
           birth_year: newPlayer.birth_year ? parseInt(newPlayer.birth_year) : null,
-          tournament_id: newPlayer.tournament_id ? parseInt(newPlayer.tournament_id) : null
+          tournament_ids: newPlayer.tournament_ids.map((id: any) => parseInt(id))
         }) 
       });
-      setNewPlayer({ name: '', phone: '', level: 'Beginner', birth_year: '', gender: 'M', team_name: '', tournament_id: '' });
+      setNewPlayer({ name: '', phone: '', level: 'Beginner', birth_year: '', gender: 'M', team_name: '', tournament_ids: [] });
+      fetchData();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleUpdatePlayer = async () => {
+    if (!editingPlayer) return;
+    try {
+      await api(`/players/${editingPlayer.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...editingPlayer,
+          birth_year: editingPlayer.birth_year ? parseInt(editingPlayer.birth_year) : null,
+          tournament_ids: editingPlayer.tournament_ids.map((id: any) => parseInt(id))
+        })
+      });
+      setEditingPlayer(null);
       fetchData();
     } catch (e) {
       console.error(e);
@@ -236,9 +255,24 @@ export default function AdminPanel({ onBack, onManageTournament }: Props) {
                         {p.team_name || 'No Club'} • {p.level} {p.birth_year && `• ${p.birth_year}`}
                       </div>
                     </div>
-                    <button onClick={() => handleDeletePlayer(p.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-full">
-                      <Trash2 size={18} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => {
+                          setEditingPlayer({
+                            ...p,
+                            tournament_ids: Array.isArray(p.tournament_ids) 
+                              ? p.tournament_ids.map((id: any) => parseInt(id)) 
+                              : p.tournament_id ? [parseInt(p.tournament_id)] : []
+                          });
+                        }} 
+                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-full"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button onClick={() => handleDeletePlayer(p.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-full">
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -262,16 +296,37 @@ export default function AdminPanel({ onBack, onManageTournament }: Props) {
                     <option value="Advanced">Advanced</option>
                     <option value="Pro">Pro</option>
                   </select>
-                  <select 
-                    value={newPlayer.tournament_id} 
-                    onChange={e => setNewPlayer({...newPlayer, tournament_id: e.target.value})} 
-                    className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#D4FF00] text-sm"
-                  >
-                    <option value="">Không liên kết (VĐV chung hệ thống)</option>
-                    {tournaments.map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
+                  
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block pl-1">ASSOCIATED TOURNAMENTS (GIẢI ĐẤU THAM GIA)</label>
+                    <div className="max-h-36 overflow-y-auto bg-gray-50 rounded-xl p-3 border border-gray-100 space-y-2">
+                      {tournaments.map(t => {
+                        const isChecked = newPlayer.tournament_ids?.includes(parseInt(t.id));
+                        return (
+                          <label key={t.id} className="flex items-center gap-2.5 text-xs font-bold text-gray-700 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={isChecked || false}
+                              onChange={() => {
+                                const tId = parseInt(t.id);
+                                const currentIds = newPlayer.tournament_ids || [];
+                                const newIds = currentIds.includes(tId)
+                                  ? currentIds.filter((id: number) => id !== tId)
+                                  : [...currentIds, tId];
+                                setNewPlayer({ ...newPlayer, tournament_ids: newIds });
+                              }}
+                              className="w-4 h-4 rounded border-gray-300 text-[#D4FF00] focus:ring-[#D4FF00]"
+                            />
+                            <span className="truncate">{t.name}</span>
+                          </label>
+                        );
+                      })}
+                      {tournaments.length === 0 && (
+                        <div className="text-[10px] text-gray-400 font-bold uppercase pl-1 text-center py-2">No active tournaments</div>
+                      )}
+                    </div>
+                  </div>
+
                   <button onClick={handleCreatePlayer} className="w-full bg-[#0a0a0a] text-white font-bold py-3 rounded-xl hover:bg-black flex items-center justify-center gap-2 mt-2">
                     <Plus size={18} /> ADD TO DIRECTORY
                   </button>
@@ -317,95 +372,177 @@ export default function AdminPanel({ onBack, onManageTournament }: Props) {
                 )}
               </div>
             </div>
-            
-            {editingTournament && (
-              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 relative">
-                  <button onClick={() => setEditingTournament(null)} className="absolute top-6 right-6 text-gray-400 hover:text-black">
-                    <Trash2 size={24} className="rotate-45" /> {/* Close icon substitute */}
-                  </button>
-                  <h3 className="text-3xl font-black mb-8 tracking-tighter uppercase">Edit Tournament</h3>
-                  
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-bold mb-2">Tournament Name</label>
-                      <input type="text" value={editingTournament.name} onChange={e => setEditingTournament({...editingTournament, name: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold" />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-bold mb-2">Format</label>
-                        <select value={editingTournament.format} onChange={e => setEditingTournament({...editingTournament, format: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold">
-                          <option value="knockout">Knockout</option>
-                          <option value="round-robin">Round-Robin</option>
-                          <option value="round-robin-knockout">Round-Robin & Knockout</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-bold mb-2">Location</label>
-                        <input type="text" value={editingTournament.location || ''} onChange={e => setEditingTournament({...editingTournament, location: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold" />
-                      </div>
-                    </div>
+          </div>
+        )}
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-bold mb-2">Match Type</label>
-                        <select value={editingTournament.match_type || 'Doubles'} onChange={e => setEditingTournament({...editingTournament, match_type: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold">
-                          <option value="Singles">Singles</option>
-                          <option value="Doubles">Doubles</option>
-                          <option value="Men's Doubles">Men's Doubles</option>
-                          <option value="Women's Doubles">Women's Doubles</option>
-                          <option value="Mixed Doubles">Mixed Doubles</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-bold mb-2">Scoring Format</label>
-                        <select value={editingTournament.scoring_format || '11_win_by_2'} onChange={e => setEditingTournament({...editingTournament, scoring_format: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold text-sm">
-                          <option value="11_win_by_2">First to 11 (Win by 2)</option>
-                          <option value="15_win_by_2">First to 15 (Win by 2)</option>
-                          <option value="21_win_by_2">First to 21 (Win by 2)</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                         <label className="block text-sm font-bold mb-2">Banner Image</label>
-                         <div className="flex gap-2">
-                           <input type="text" value={editingTournament.banner_url || ''} onChange={e => setEditingTournament({...editingTournament, banner_url: e.target.value})} className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 font-bold text-xs" />
-                           <button 
-                             onClick={() => bannerInputRef.current?.click()}
-                             disabled={uploadingBanner}
-                             className="bg-black text-white px-4 rounded-xl hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center"
-                           >
-                             {uploadingBanner ? <span className="text-xs font-bold px-2">UPLOADING...</span> : <Upload size={18} />}
-                           </button>
-                           <input type="file" ref={bannerInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'banner')} />
-                         </div>
-                      </div>
-                      <div>
-                         <label className="block text-sm font-bold mb-2">Poster Image</label>
-                         <div className="flex gap-2">
-                           <input type="text" value={editingTournament.poster_url || ''} onChange={e => setEditingTournament({...editingTournament, poster_url: e.target.value})} className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 font-bold text-xs" />
-                           <button 
-                             onClick={() => posterInputRef.current?.click()}
-                             disabled={uploadingPoster}
-                             className="bg-black text-white px-4 rounded-xl hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center"
-                           >
-                             {uploadingPoster ? <span className="text-xs font-bold px-2">UPLOADING...</span> : <Upload size={18} />}
-                           </button>
-                           <input type="file" ref={posterInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'poster')} />
-                         </div>
-                      </div>
-                    </div>
+        {editingTournament && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 relative">
+              <button onClick={() => setEditingTournament(null)} className="absolute top-6 right-6 text-gray-400 hover:text-black">
+                <Trash2 size={24} className="rotate-45" /> {/* Close icon substitute */}
+              </button>
+              <h3 className="text-3xl font-black mb-8 tracking-tighter uppercase">Edit Tournament</h3>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-bold mb-2">Tournament Name</label>
+                  <input type="text" value={editingTournament.name} onChange={e => setEditingTournament({...editingTournament, name: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold" />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold mb-2">Format</label>
+                    <select value={editingTournament.format} onChange={e => setEditingTournament({...editingTournament, format: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold">
+                      <option value="knockout">Knockout</option>
+                      <option value="round-robin">Round-Robin</option>
+                      <option value="round-robin-knockout">Round-Robin & Knockout</option>
+                    </select>
                   </div>
-                  
-                  <button onClick={handleUpdateTournament} className="w-full mt-8 py-4 bg-[#D4FF00] text-black rounded-xl font-black text-lg flex items-center justify-center gap-2 hover:bg-[#bce600]">
-                    SAVE CHANGES
-                  </button>
+                  <div>
+                    <label className="block text-sm font-bold mb-2">Location</label>
+                    <input type="text" value={editingTournament.location || ''} onChange={e => setEditingTournament({...editingTournament, location: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold mb-2">Match Type</label>
+                    <select value={editingTournament.match_type || 'Doubles'} onChange={e => setEditingTournament({...editingTournament, match_type: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold">
+                      <option value="Singles">Singles</option>
+                      <option value="Doubles">Doubles</option>
+                      <option value="Men's Doubles">Men's Doubles</option>
+                      <option value="Women's Doubles">Women's Doubles</option>
+                      <option value="Mixed Doubles">Mixed Doubles</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold mb-2">Scoring Format</label>
+                    <select value={editingTournament.scoring_format || '11_win_by_2'} onChange={e => setEditingTournament({...editingTournament, scoring_format: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold text-sm">
+                      <option value="11_win_by_2">First to 11 (Win by 2)</option>
+                      <option value="15_win_by_2">First to 15 (Win by 2)</option>
+                      <option value="21_win_by_2">First to 21 (Win by 2)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                     <label className="block text-sm font-bold mb-2">Banner Image</label>
+                     <div className="flex gap-2">
+                       <input type="text" value={editingTournament.banner_url || ''} onChange={e => setEditingTournament({...editingTournament, banner_url: e.target.value})} className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 font-bold text-xs" />
+                       <button 
+                         onClick={() => bannerInputRef.current?.click()}
+                         disabled={uploadingBanner}
+                         className="bg-black text-white px-4 rounded-xl hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center"
+                       >
+                         {uploadingBanner ? <span className="text-xs font-bold px-2">UPLOADING...</span> : <Upload size={18} />}
+                       </button>
+                       <input type="file" ref={bannerInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'banner')} />
+                     </div>
+                  </div>
+                  <div>
+                     <label className="block text-sm font-bold mb-2">Poster Image</label>
+                     <div className="flex gap-2">
+                       <input type="text" value={editingTournament.poster_url || ''} onChange={e => setEditingTournament({...editingTournament, poster_url: e.target.value})} className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 font-bold text-xs" />
+                       <button 
+                         onClick={() => posterInputRef.current?.click()}
+                         disabled={uploadingPoster}
+                         className="bg-black text-white px-4 rounded-xl hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center"
+                       >
+                         {uploadingPoster ? <span className="text-xs font-bold px-2">UPLOADING...</span> : <Upload size={18} />}
+                       </button>
+                       <input type="file" ref={posterInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'poster')} />
+                     </div>
+                  </div>
                 </div>
               </div>
-            )}
+              
+              <button onClick={handleUpdateTournament} className="w-full mt-8 py-4 bg-[#D4FF00] text-black rounded-xl font-black text-lg flex items-center justify-center gap-2 hover:bg-[#bce600]">
+                SAVE CHANGES
+              </button>
+            </div>
+          </div>
+        )}
+
+        {editingPlayer && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 relative">
+              <button onClick={() => setEditingPlayer(null)} className="absolute top-6 right-6 text-gray-400 hover:text-black">
+                <Trash2 size={24} className="rotate-45" />
+              </button>
+              <h3 className="text-3xl font-black mb-8 tracking-tighter uppercase">Edit Player Information</h3>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-bold mb-2">Full Name</label>
+                  <input type="text" value={editingPlayer.name} onChange={e => setEditingPlayer({...editingPlayer, name: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold" />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold mb-2">Gender</label>
+                    <select value={editingPlayer.gender} onChange={e => setEditingPlayer({...editingPlayer, gender: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold">
+                      <option value="M">Male (M)</option>
+                      <option value="F">Female (F)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold mb-2">Birth Year</label>
+                    <input type="number" value={editingPlayer.birth_year || ''} onChange={e => setEditingPlayer({...editingPlayer, birth_year: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold mb-2">Team/Club Name</label>
+                    <input type="text" value={editingPlayer.team_name || ''} onChange={e => setEditingPlayer({...editingPlayer, team_name: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold mb-2">Skill Level</label>
+                    <select value={editingPlayer.level} onChange={e => setEditingPlayer({...editingPlayer, level: e.target.value})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 font-bold">
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advanced">Advanced</option>
+                      <option value="Pro">Pro</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-bold mb-2">Associated Tournaments (Tích chọn giải đấu)</label>
+                  <div className="max-h-48 overflow-y-auto bg-gray-50 rounded-xl p-4 border border-gray-100 space-y-2.5">
+                    {tournaments.map(t => {
+                      const isChecked = editingPlayer.tournament_ids?.includes(parseInt(t.id));
+                      return (
+                        <label key={t.id} className="flex items-center gap-3 text-sm font-bold text-gray-700 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={isChecked || false}
+                            onChange={() => {
+                              const tId = parseInt(t.id);
+                              const currentIds = editingPlayer.tournament_ids || [];
+                              const newIds = currentIds.includes(tId)
+                                ? currentIds.filter((id: number) => id !== tId)
+                                : [...currentIds, tId];
+                              setEditingPlayer({ ...editingPlayer, tournament_ids: newIds });
+                            }}
+                            className="w-4 h-4 rounded border-gray-300 text-[#D4FF00] focus:ring-[#D4FF00]"
+                          />
+                          <span className="truncate">{t.name}</span>
+                        </label>
+                      );
+                    })}
+                    {tournaments.length === 0 && (
+                      <div className="text-xs text-gray-400 font-bold uppercase pl-1 text-center py-2">No active tournaments</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <button onClick={handleUpdatePlayer} className="w-full mt-8 py-4 bg-[#D4FF00] text-black rounded-xl font-black text-lg flex items-center justify-center gap-2 hover:bg-[#bce600]">
+                SAVE CHANGES
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -134,6 +134,8 @@ export default function TournamentView({ tournament, onBack }: Props) {
               <BracketTab
                 tournament={tournament}
                 matches={matches}
+                isOwner={isOwner}
+                onReload={loadData}
               />
             )}
             {activeTab === 'referee' && isOwner && (

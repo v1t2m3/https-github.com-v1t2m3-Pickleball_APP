@@ -74,7 +74,7 @@ export default function GroupsTab({ tournament, isOwner }: { tournament: Tournam
     }
   };
 
-  const isRoundRobin = tournament.format.toLowerCase().includes('round-robin');
+  const isRoundRobin = (tournament.format || '').toLowerCase().includes('round-robin');
 
   if (!isRoundRobin) {
     return (
