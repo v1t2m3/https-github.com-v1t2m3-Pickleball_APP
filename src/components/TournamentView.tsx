@@ -113,20 +113,20 @@ export default function TournamentView({ tournament, onBack }: Props) {
             {activeTab === 'teams' && (
               <TeamsTab
                 tournament={tournament}
-                isOwner={isOwner}
+                isOwner={isAdmin}
               />
             )}
             {activeTab === 'groups' && (
               <GroupsTab
                 tournament={tournament}
-                isOwner={isOwner}
+                isOwner={isAdmin}
               />
             )}
             {activeTab === 'schedule' && (
               <ScheduleTab
                 tournament={tournament}
                 matches={matches}
-                isOwner={isOwner}
+                isOwner={isAdmin}
                 onReload={loadData}
               />
             )}
@@ -134,7 +134,7 @@ export default function TournamentView({ tournament, onBack }: Props) {
               <BracketTab
                 tournament={tournament}
                 matches={matches}
-                isOwner={isOwner}
+                isOwner={isAdmin}
                 onReload={loadData}
               />
             )}

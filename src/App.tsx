@@ -184,7 +184,7 @@ export default function App() {
               <h2 className="text-4xl font-bold tracking-tighter mb-2">ACTIVE TOURNAMENTS</h2>
               <p className="text-gray-500 font-medium">Join or manage your pickleball events effortlessly.</p>
             </div>
-            {(isAdmin || isReferee) && (
+            {isAdmin && (
               <div className="flex flex-wrap gap-3">
                 <button 
                   onClick={() => {

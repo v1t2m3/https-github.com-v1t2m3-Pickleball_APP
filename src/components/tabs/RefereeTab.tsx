@@ -146,7 +146,7 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
 
   return (
     <div className="space-y-8">
-      {tournament.format === 'social' && (
+      {tournament.format === 'social' && isAdmin && (
         <div className="bg-white p-6 md:p-8 rounded-3xl border shadow-sm space-y-6">
           <div className="flex items-center gap-3">
             <Trophy className="text-purple-600 bg-purple-100 p-2 rounded-2xl" size={42} />
@@ -224,35 +224,43 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
         <div className="bg-white rounded-3xl p-12 text-center border-2 border-dashed border-gray-200 space-y-6">
           <Layers className="mx-auto text-gray-300" size={48} />
           <h3 className="text-3xl font-black mb-2 uppercase tracking-tight">TOURNAMENT SETUP</h3>
-          <p className="text-gray-500 mb-8 max-w-md mx-auto font-medium text-sm">
-            {isKnockout
-              ? "Hãy bốc thăm hạt giống thủ công để vẽ nhánh đấu tùy chọn, hoặc click sinh lịch tự động ngẫu nhiên."
-              : "Khởi tạo bảng đấu và lịch thi đấu vòng bảng. (Quản trị viên có thể chia bảng và gán đội thủ công ở tab Groups trước)."
-            }
-          </p>
+          {isAdmin ? (
+            <>
+              <p className="text-gray-500 mb-8 max-w-md mx-auto font-medium text-sm">
+                {isKnockout
+                  ? "Hãy bốc thăm hạt giống thủ công để vẽ nhánh đấu tùy chọn, hoặc click sinh lịch tự động ngẫu nhiên."
+                  : "Khởi tạo bảng đấu và lịch thi đấu vòng bảng. (Quản trị viên có thể chia bảng và gán đội thủ công ở tab Groups trước)."
+                }
+              </p>
 
-          <div className="flex flex-wrap gap-4 justify-center">
-            <button
-              onClick={generateSchedule}
-              disabled={loading}
-              className="px-8 py-4 bg-[#D4FF00] hover:bg-[#bce600] text-black rounded-2xl font-black text-sm hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100 uppercase tracking-tight shadow-sm"
-            >
-              {loading ? 'GENERATING...' : isKnockout ? 'SINH NHÁNH ĐẤU TỰ ĐỘNG' : 'SINH LỊCH VÒNG BẢNG'}
-            </button>
+              <div className="flex flex-wrap gap-4 justify-center">
+                <button
+                  onClick={generateSchedule}
+                  disabled={loading}
+                  className="px-8 py-4 bg-[#D4FF00] hover:bg-[#bce600] text-black rounded-2xl font-black text-sm hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100 uppercase tracking-tight shadow-sm"
+                >
+                  {loading ? 'GENERATING...' : isKnockout ? 'SINH NHÁNH ĐẤU TỰ ĐỘNG' : 'SINH LỊCH VÒNG BẢNG'}
+                </button>
 
-            {isKnockout && (
-              <button
-                onClick={() => setBracketBuilderOpen(true)}
-                className="px-8 py-4 bg-black hover:bg-gray-800 text-white rounded-2xl font-black text-sm hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100 uppercase tracking-tight shadow-sm"
-              >
-                MANUAL DRAWING / DRAW BRACKET
-              </button>
-            )}
-          </div>
+                {isKnockout && (
+                  <button
+                    onClick={() => setBracketBuilderOpen(true)}
+                    className="px-8 py-4 bg-black hover:bg-gray-800 text-white rounded-2xl font-black text-sm hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100 uppercase tracking-tight shadow-sm"
+                  >
+                    MANUAL DRAWING / DRAW BRACKET
+                  </button>
+                )}
+              </div>
+            </>
+          ) : (
+            <p className="text-gray-500 max-w-md mx-auto font-medium text-sm">
+              Vui lòng đợi Ban tổ chức/Admin khởi tạo lịch thi đấu và phân công trọng tài cho trận đấu của bạn.
+            </p>
+          )}
         </div>
       )}
 
-      {matches.length > 0 && isCombineFormat && (
+      {matches.length > 0 && isCombineFormat && isAdmin && (
         <div className="bg-white p-6 rounded-3xl border-2 border-dashed border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Trophy className="text-[#D4FF00] bg-black p-2 rounded-2xl" size={40} />
