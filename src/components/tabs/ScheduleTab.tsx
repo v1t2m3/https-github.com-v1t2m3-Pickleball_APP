@@ -30,6 +30,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
   const [editOrder, setEditOrder] = useState('1');
   const [editRef1, setEditRef1] = useState('');
   const [editRef2, setEditRef2] = useState('');
+  const [editScoringFormat, setEditScoringFormat] = useState('');
 
   // Fetch users for referee assignment (Admin only)
   useEffect(() => {
@@ -46,17 +47,19 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
     setEditOrder(m.match_order?.toString() || '1');
     setEditRef1(m.referee_id?.toString() || '');
     setEditRef2(m.referee2_id?.toString() || '');
+    setEditScoringFormat(m.scoring_format || '');
   };
 
   const handleSaveScheduler = async () => {
     if (!selectedMatchForEdit) return;
     try {
-      // 1. Save court and match_order
+      // 1. Save court, match_order and scoring_format
       await api(`/tournaments/${tournament.id}/matches/${selectedMatchForEdit.id}`, {
         method: 'PUT',
         body: JSON.stringify({
           court: editCourt || null,
-          match_order: editOrder ? parseInt(editOrder) : null
+          match_order: editOrder ? parseInt(editOrder) : null,
+          scoring_format: editScoringFormat || null
         })
       });
 
@@ -82,7 +85,31 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
   const upcomingMatches = matches.filter(m => m.status === 'upcoming');
   const finishedMatches = matches.filter(m => m.status === 'completed');
 
-  const targetScore = tournament.scoring_format?.includes('15') ? 15 : tournament.scoring_format?.includes('21') ? 21 : 11;
+  const getMatchPointInfo = (m: Match, tournamentScoring: string) => {
+    const activeFormat = m.scoring_format || tournamentScoring || '11_win_by_2';
+    const target = activeFormat.includes('15') ? 15 : activeFormat.includes('21') ? 21 : activeFormat.includes('25') ? 25 : 11;
+    const winBy2 = activeFormat.includes('win_by_2');
+
+    let team1HasMatchPoint = false;
+    let team2HasMatchPoint = false;
+
+    if (winBy2) {
+      team1HasMatchPoint = m.serving_team_id === m.team1_id && m.score_team1 >= target - 1 && m.score_team1 - m.score_team2 >= 1;
+      team2HasMatchPoint = m.serving_team_id === m.team2_id && m.score_team2 >= target - 1 && m.score_team2 - m.score_team1 >= 1;
+    } else {
+      team1HasMatchPoint = m.serving_team_id === m.team1_id && m.score_team1 >= target - 1;
+      team2HasMatchPoint = m.serving_team_id === m.team2_id && m.score_team2 >= target - 1;
+    }
+
+    return {
+      isMatchPoint: team1HasMatchPoint || team2HasMatchPoint,
+      team1HasMatchPoint,
+      team2HasMatchPoint,
+      targetScore: target,
+      winBy2
+    };
+  };
+
   const isDoubles = tournament.match_type?.toLowerCase()?.includes('doubles') ?? true;
 
   // Group and sort upcoming matches by match_order
@@ -111,9 +138,8 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {liveMatches.map(m => {
               // Calculate Match Point logic
-              const team1HasMatchPoint = m.serving_team_id === m.team1_id && m.score_team1 >= targetScore - 1 && m.score_team1 - m.score_team2 >= 1;
-              const team2HasMatchPoint = m.serving_team_id === m.team2_id && m.score_team2 >= targetScore - 1 && m.score_team2 - m.score_team1 >= 1;
-              const isMatchPoint = team1HasMatchPoint || team2HasMatchPoint;
+              const matchPointInfo = getMatchPointInfo(m, tournament.scoring_format || '11_win_by_2');
+              const { isMatchPoint, team1HasMatchPoint, team2HasMatchPoint } = matchPointInfo;
 
               return (
                 <div key={m.id} className="bg-[#0a0a0a] text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden border-2 border-[#D4FF00]">
@@ -492,6 +518,36 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                   {refereeUsers.map(u => (
                     <option key={u.id} value={u.id}>{u.username} ({u.role})</option>
                   ))}
+                </select>
+              </div>
+
+              {/* Scoring Format */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-black uppercase tracking-wider text-gray-500">Scoring Format</label>
+                <select
+                  value={editScoringFormat}
+                  onChange={e => setEditScoringFormat(e.target.value)}
+                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none font-bold text-sm"
+                >
+                  <option value="">Mặc định (Kế thừa giải đấu: {
+                    tournament.scoring_format === '11' ? 'Chạm 11 (First to 11)' :
+                    tournament.scoring_format === '11_win_by_2' ? 'Chạm 11 cách 2 (11 Win by 2)' :
+                    tournament.scoring_format === '15' ? 'Chạm 15 (First to 15)' :
+                    tournament.scoring_format === '15_win_by_2' ? 'Chạm 15 cách 2 (15 Win by 2)' :
+                    tournament.scoring_format === '21' ? 'Chạm 21 (First to 21)' :
+                    tournament.scoring_format === '21_win_by_2' ? 'Chạm 21 cách 2 (21 Win by 2)' :
+                    tournament.scoring_format === '25' ? 'Chạm 25 (First to 25)' :
+                    tournament.scoring_format === '25_win_by_2' ? 'Chạm 25 cách 2 (25 Win by 2)' :
+                    tournament.scoring_format || '11_win_by_2'
+                  })</option>
+                  <option value="11">Chạm 11 (First to 11)</option>
+                  <option value="11_win_by_2">Chạm 11 cách 2 (11 Win by 2)</option>
+                  <option value="15">Chạm 15 (First to 15)</option>
+                  <option value="15_win_by_2">Chạm 15 cách 2 (15 Win by 2)</option>
+                  <option value="21">Chạm 21 (First to 21)</option>
+                  <option value="21_win_by_2">Chạm 21 cách 2 (21 Win by 2)</option>
+                  <option value="25">Chạm 25 (First to 25)</option>
+                  <option value="25_win_by_2">Chạm 25 cách 2 (25 Win by 2)</option>
                 </select>
               </div>
             </div>

@@ -453,12 +453,14 @@ export default function App() {
                       onChange={(e) => setNewTournament({ ...newTournament, scoring_format: e.target.value })}
                       className="w-full bg-gray-100 border-none rounded-xl px-4 py-3 font-medium focus:ring-2 focus:ring-[#D4FF00] outline-none"
                     >
-                      <option value="11">First to 11</option>
-                      <option value="11_win_by_2">11 (Win by 2)</option>
-                      <option value="15">First to 15</option>
-                      <option value="15_win_by_2">15 (Win by 2)</option>
-                      <option value="21">First to 21</option>
-                      <option value="25">First to 25</option>
+                      <option value="11">Chạm 11 (First to 11)</option>
+                      <option value="11_win_by_2">Chạm 11 cách 2 (11 Win by 2)</option>
+                      <option value="15">Chạm 15 (First to 15)</option>
+                      <option value="15_win_by_2">Chạm 15 cách 2 (15 Win by 2)</option>
+                      <option value="21">Chạm 21 (First to 21)</option>
+                      <option value="21_win_by_2">Chạm 21 cách 2 (21 Win by 2)</option>
+                      <option value="25">Chạm 25 (First to 25)</option>
+                      <option value="25_win_by_2">Chạm 25 cách 2 (25 Win by 2)</option>
                     </select>
                   </div>
                 </div>

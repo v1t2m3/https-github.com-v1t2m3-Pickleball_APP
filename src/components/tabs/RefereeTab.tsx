@@ -360,11 +360,23 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
               {sortedMatches.map(m => {
                 const isServing1 = m.serving_team_id === m.team1_id;
                 const isServing2 = m.serving_team_id === m.team2_id;
-                const targetScore = tournament.scoring_format?.includes('15') ? 15 : tournament.scoring_format?.includes('21') ? 21 : 11;
+                const activeFormat = m.scoring_format || tournament.scoring_format || '11_win_by_2';
+                const targetScore = activeFormat.includes('15') ? 15 : activeFormat.includes('21') ? 21 : activeFormat.includes('25') ? 25 : 11;
+                const winBy2 = activeFormat.includes('win_by_2');
                 const isDoubles = tournament.match_type?.toLowerCase()?.includes('doubles') ?? true;
 
-                const team1HasMatchPoint = m.status === 'live' && isServing1 && m.score_team1 >= targetScore - 1 && m.score_team1 - m.score_team2 >= 1;
-                const team2HasMatchPoint = m.status === 'live' && isServing2 && m.score_team2 >= targetScore - 1 && m.score_team2 - m.score_team1 >= 1;
+                let team1HasMatchPoint = false;
+                let team2HasMatchPoint = false;
+
+                if (m.status === 'live') {
+                  if (winBy2) {
+                    team1HasMatchPoint = isServing1 && m.score_team1 >= targetScore - 1 && m.score_team1 - m.score_team2 >= 1;
+                    team2HasMatchPoint = isServing2 && m.score_team2 >= targetScore - 1 && m.score_team2 - m.score_team1 >= 1;
+                  } else {
+                    team1HasMatchPoint = isServing1 && m.score_team1 >= targetScore - 1;
+                    team2HasMatchPoint = isServing2 && m.score_team2 >= targetScore - 1;
+                  }
+                }
 
                 const isAssigned = isAssignedReferee(m);
 

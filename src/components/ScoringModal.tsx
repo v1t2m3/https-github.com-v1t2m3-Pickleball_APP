@@ -18,8 +18,10 @@ interface MatchState {
 }
 
 export default function ScoringModal({ tournament, match, onClose, onUpdate }: Props) {
-  // Parsing target score
-  const targetScore = tournament.scoring_format?.includes('15') ? 15 : tournament.scoring_format?.includes('21') ? 21 : 11;
+  // Parsing target score and rules
+  const activeFormat = match.scoring_format || tournament.scoring_format || '11_win_by_2';
+  const targetScore = activeFormat.includes('15') ? 15 : activeFormat.includes('21') ? 21 : activeFormat.includes('25') ? 25 : 11;
+  const winBy2 = activeFormat.includes('win_by_2');
   const isDoubles = tournament.match_type?.toLowerCase()?.includes('doubles') ?? true;
 
   // Local Match States for Optimistic UI updates
@@ -168,11 +170,20 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
   const isMatchPoint = (team: 1 | 2) => {
     if (status !== 'live' || !servingTeamId) return false;
 
-    if (team === 1 && servingTeamId === match.team1_id) {
-      return score1 >= targetScore - 1 && score1 - score2 >= 1;
-    }
-    if (team === 2 && servingTeamId === match.team2_id) {
-      return score2 >= targetScore - 1 && score2 - score1 >= 1;
+    if (winBy2) {
+      if (team === 1 && servingTeamId === match.team1_id) {
+        return score1 >= targetScore - 1 && score1 - score2 >= 1;
+      }
+      if (team === 2 && servingTeamId === match.team2_id) {
+        return score2 >= targetScore - 1 && score2 - score1 >= 1;
+      }
+    } else {
+      if (team === 1 && servingTeamId === match.team1_id) {
+        return score1 >= targetScore - 1;
+      }
+      if (team === 2 && servingTeamId === match.team2_id) {
+        return score2 >= targetScore - 1;
+      }
     }
     return false;
   };

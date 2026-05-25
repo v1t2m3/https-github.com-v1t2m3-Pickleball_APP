@@ -48,4 +48,5 @@ export interface Match {
   match_order?: number;
   updated_at?: any;
   group_name?: string;
+  scoring_format?: string;
 }
