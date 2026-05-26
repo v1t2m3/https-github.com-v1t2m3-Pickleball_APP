@@ -5,6 +5,7 @@ import { Tournament, TournamentType } from './types';
 import TournamentView from './components/TournamentView';
 import Login from './components/Login';
 import AdminPanel from './components/AdminPanel';
+import PickerWheel from './components/PickerWheel';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useAuth } from './contexts/AuthContext';
@@ -22,6 +23,7 @@ export default function App() {
   const [isCreatingSocial, setIsCreatingSocial] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const [isPickerWheelOpen, setIsPickerWheelOpen] = useState(false);
   
   const [newTournament, setNewTournament] = useState({ 
     name: '', 
@@ -113,6 +115,10 @@ export default function App() {
     }
   };
 
+  if (isPickerWheelOpen) {
+    return <PickerWheel onBack={() => setIsPickerWheelOpen(false)} />;
+  }
+
   if (isAdminPanelOpen && isAdmin) {
     return <AdminPanel 
       onBack={() => setIsAdminPanelOpen(false)} 
@@ -139,11 +145,20 @@ export default function App() {
     <div className="min-h-screen bg-[#f5f5f5] text-[#1a1a1a] font-sans">
       {/* Header */}
       <header className="bg-[#0a0a0a] text-white px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#D4FF00] rounded-full flex items-center justify-center">
-            <Activity className="text-black w-5 h-5" />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setSelectedTournament(null); setIsAdminPanelOpen(false); setIsPickerWheelOpen(false); }}>
+            <div className="w-8 h-8 bg-[#D4FF00] rounded-full flex items-center justify-center">
+              <Activity className="text-black w-5 h-5" />
+            </div>
+            <h1 className="text-xl font-bold tracking-tight">PICKLEBALL PRO</h1>
           </div>
-          <h1 className="text-xl font-bold tracking-tight">PICKLEBALL PRO</h1>
+          
+          <button 
+            onClick={() => setIsPickerWheelOpen(true)}
+            className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-[#D4FF00] rounded-full font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1 active:scale-95 border border-[#D4FF00]/15"
+          >
+            🎲 Bốc Thăm
+          </button>
         </div>
         
         {isAuthenticated ? (
