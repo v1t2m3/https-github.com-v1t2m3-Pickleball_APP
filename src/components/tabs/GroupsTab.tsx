@@ -26,6 +26,13 @@ export default function GroupsTab({ tournament, isOwner }: { tournament: Tournam
 
   useEffect(() => {
     loadData();
+
+    // Thiết lập Polling ngầm tự động cập nhật bảng xếp hạng mỗi 10 giây
+    const interval = setInterval(() => {
+      loadData();
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleCreateGroup = async () => {
