@@ -24,9 +24,9 @@ export default function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [isPickerWheelOpen, setIsPickerWheelOpen] = useState(false);
-  
-  const [newTournament, setNewTournament] = useState({ 
-    name: '', 
+
+  const [newTournament, setNewTournament] = useState({
+    name: '',
     type: 'knockout' as TournamentType,
     banner_url: '',
     poster_url: '',
@@ -70,7 +70,7 @@ export default function App() {
         method: 'POST',
         body: formData,
       });
-      
+
       setNewTournament(prev => ({
         ...prev,
         [type === 'banner' ? 'banner_url' : 'poster_url']: response.url
@@ -103,10 +103,10 @@ export default function App() {
         })
       });
       setIsCreating(false);
-      setNewTournament({ 
-        name: '', type: 'knockout', banner_url: '', poster_url: '', 
-        start_time: '', location: '', max_participants: 16, 
-        match_type: 'Doubles', scoring_format: '11_win_by_2' 
+      setNewTournament({
+        name: '', type: 'knockout', banner_url: '', poster_url: '',
+        start_time: '', location: '', max_participants: 16,
+        match_type: 'Doubles', scoring_format: '11_win_by_2'
       });
       fetchTournaments();
     } catch (error: any) {
@@ -120,8 +120,8 @@ export default function App() {
   }
 
   if (isAdminPanelOpen && isAdmin) {
-    return <AdminPanel 
-      onBack={() => setIsAdminPanelOpen(false)} 
+    return <AdminPanel
+      onBack={() => setIsAdminPanelOpen(false)}
       onManageTournament={(t) => {
         setIsAdminPanelOpen(false);
         setSelectedTournament(t);
@@ -131,12 +131,12 @@ export default function App() {
 
   if (selectedTournament) {
     return (
-      <TournamentView 
-        tournament={selectedTournament} 
+      <TournamentView
+        tournament={selectedTournament}
         onBack={() => {
           setSelectedTournament(null);
           fetchTournaments();
-        }} 
+        }}
       />
     );
   }
@@ -152,19 +152,19 @@ export default function App() {
             </div>
             <h1 className="text-xl font-bold tracking-tight">PICKLEBALL PRO</h1>
           </div>
-          
-          <button 
+
+          <button
             onClick={() => setIsPickerWheelOpen(true)}
             className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-[#D4FF00] rounded-full font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1 active:scale-95 border border-[#D4FF00]/15"
           >
-            🎲 Bốc Thăm
+            🎲 Draw lots
           </button>
         </div>
-        
+
         {isAuthenticated ? (
           <div className="flex items-center gap-4">
             {isAdmin && (
-              <button 
+              <button
                 onClick={() => setIsAdminPanelOpen(true)}
                 className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-[#D4FF00] text-black rounded-full hover:bg-[#bce600] transition-colors"
               >
@@ -174,7 +174,7 @@ export default function App() {
             <span className="text-xs font-mono opacity-80 hidden sm:inline text-[#D4FF00]">
               {user?.username} ({user?.role})
             </span>
-            <button 
+            <button
               onClick={logout}
               className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-white/10 rounded-full hover:bg-white/20 transition-colors"
             >
@@ -182,7 +182,7 @@ export default function App() {
             </button>
           </div>
         ) : (
-          <button 
+          <button
             onClick={() => setIsLoginOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-[#D4FF00] text-black rounded-full font-bold text-sm hover:scale-105 transition-transform"
           >
@@ -201,7 +201,7 @@ export default function App() {
             </div>
             {isAdmin && (
               <div className="flex flex-wrap gap-3">
-                <button 
+                <button
                   onClick={() => {
                     setIsCreating(true);
                     setIsCreatingSocial(true);
@@ -221,20 +221,20 @@ export default function App() {
                 >
                   <span className="text-sm">🎲</span> NEW SOCIAL PLAY
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     setIsCreating(true);
                     setIsCreatingSocial(false);
-                    setNewTournament({ 
-                      name: '', 
-                      location: '', 
-                      start_time: '', 
-                      max_participants: 16, 
-                      type: 'knockout', 
-                      banner_url: '', 
-                      poster_url: '', 
-                      match_type: 'Doubles', 
-                      scoring_format: '11_win_by_2' 
+                    setNewTournament({
+                      name: '',
+                      location: '',
+                      start_time: '',
+                      max_participants: 16,
+                      type: 'knockout',
+                      banner_url: '',
+                      poster_url: '',
+                      match_type: 'Doubles',
+                      scoring_format: '11_win_by_2'
                     });
                   }}
                   className="flex items-center gap-2 px-6 py-3 bg-[#0a0a0a] text-white rounded-xl font-bold hover:bg-[#1a1a1a] transition-colors text-xs uppercase"
@@ -247,24 +247,24 @@ export default function App() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tournaments.map((t) => (
-              <motion.div 
+              <motion.div
                 key={t.id}
                 whileHover={{ y: -4 }}
                 onClick={() => setSelectedTournament(t)}
                 className="group cursor-pointer bg-white border border-gray-200 p-0 rounded-2xl hover:border-[#D4FF00] hover:shadow-xl transition-all relative overflow-hidden flex flex-col"
               >
                 {t.banner_url ? (
-                   <div className="h-32 w-full bg-gray-200">
-                     <img src={t.banner_url} alt="Banner" className="w-full h-full object-cover" />
-                   </div>
+                  <div className="h-32 w-full bg-gray-200">
+                    <img src={t.banner_url} alt="Banner" className="w-full h-full object-cover" />
+                  </div>
                 ) : (
-                   <div className="h-32 w-full bg-gradient-to-r from-gray-100 to-gray-200 flex items-center justify-center relative overflow-hidden">
-                      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Trophy size={64} />
-                      </div>
-                   </div>
+                  <div className="h-32 w-full bg-gradient-to-r from-gray-100 to-gray-200 flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <Trophy size={64} />
+                    </div>
+                  </div>
                 )}
-                
+
                 <div className="p-6 flex-1 flex flex-col">
                   <div className="mb-4">
                     <span className={cn(
@@ -276,7 +276,7 @@ export default function App() {
                   </div>
 
                   <h3 className="text-2xl font-bold mb-4 line-clamp-2 flex-1">{t.name}</h3>
-                  
+
                   <div className="flex flex-col gap-2 text-gray-400 text-xs font-mono mb-4">
                     <div className="flex items-center gap-2 uppercase">
                       <ListChecks size={14} />
@@ -300,7 +300,7 @@ export default function App() {
                 </div>
               </motion.div>
             ))}
-            
+
             {tournaments.length === 0 && !isCreating && (
               <div className="col-span-full py-20 text-center border-2 border-dashed border-gray-200 rounded-3xl">
                 <p className="text-gray-400 font-medium">No tournaments available.</p>
@@ -319,14 +319,14 @@ export default function App() {
       <AnimatePresence>
         {isCreating && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsCreating(false)}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -335,12 +335,12 @@ export default function App() {
               <h2 className="text-3xl font-bold mb-6 tracking-tight">
                 {isCreatingSocial ? 'CREATE SOCIAL PLAY' : 'CREATE TOURNAMENT'}
               </h2>
-              
+
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Tournament Name</label>
-                    <input 
+                    <input
                       type="text"
                       value={newTournament.name}
                       onChange={(e) => setNewTournament({ ...newTournament, name: e.target.value })}
@@ -350,7 +350,7 @@ export default function App() {
                   </div>
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Location</label>
-                    <input 
+                    <input
                       type="text"
                       value={newTournament.location}
                       onChange={(e) => setNewTournament({ ...newTournament, location: e.target.value })}
@@ -363,7 +363,7 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Start Time</label>
-                    <input 
+                    <input
                       type="datetime-local"
                       value={newTournament.start_time}
                       onChange={(e) => setNewTournament({ ...newTournament, start_time: e.target.value })}
@@ -372,7 +372,7 @@ export default function App() {
                   </div>
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Max Participants</label>
-                    <input 
+                    <input
                       type="number"
                       value={newTournament.max_participants}
                       onChange={(e) => setNewTournament({ ...newTournament, max_participants: parseInt(e.target.value) || 16 })}
@@ -382,44 +382,44 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div>
+                  <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Banner Image</label>
                     <div className="flex gap-2 mb-2">
-                       <input 
-                          type="text"
-                          value={newTournament.banner_url}
-                          onChange={(e) => setNewTournament({ ...newTournament, banner_url: e.target.value })}
-                          placeholder="Image URL or upload ->"
-                          className="flex-1 bg-gray-100 border-none rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-[#D4FF00] transition-all outline-none"
-                        />
-                        <button 
-                          onClick={() => bannerInputRef.current?.click()}
-                          disabled={uploadingBanner}
-                          className="bg-black text-white px-4 rounded-xl hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center"
-                        >
-                          {uploadingBanner ? <span className="text-xs font-bold px-2">UPLOADING...</span> : <Upload size={18} />}
-                        </button>
-                        <input type="file" ref={bannerInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'banner')} />
+                      <input
+                        type="text"
+                        value={newTournament.banner_url}
+                        onChange={(e) => setNewTournament({ ...newTournament, banner_url: e.target.value })}
+                        placeholder="Image URL or upload ->"
+                        className="flex-1 bg-gray-100 border-none rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-[#D4FF00] transition-all outline-none"
+                      />
+                      <button
+                        onClick={() => bannerInputRef.current?.click()}
+                        disabled={uploadingBanner}
+                        className="bg-black text-white px-4 rounded-xl hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center"
+                      >
+                        {uploadingBanner ? <span className="text-xs font-bold px-2">UPLOADING...</span> : <Upload size={18} />}
+                      </button>
+                      <input type="file" ref={bannerInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'banner')} />
                     </div>
                   </div>
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Poster Image</label>
                     <div className="flex gap-2 mb-2">
-                       <input 
-                          type="text"
-                          value={newTournament.poster_url}
-                          onChange={(e) => setNewTournament({ ...newTournament, poster_url: e.target.value })}
-                          placeholder="Image URL or upload ->"
-                          className="flex-1 bg-gray-100 border-none rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-[#D4FF00] transition-all outline-none"
-                        />
-                        <button 
-                          onClick={() => posterInputRef.current?.click()}
-                          disabled={uploadingPoster}
-                          className="bg-black text-white px-4 rounded-xl hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center"
-                        >
-                          {uploadingPoster ? <span className="text-xs font-bold px-2">UPLOADING...</span> : <Upload size={18} />}
-                        </button>
-                        <input type="file" ref={posterInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'poster')} />
+                      <input
+                        type="text"
+                        value={newTournament.poster_url}
+                        onChange={(e) => setNewTournament({ ...newTournament, poster_url: e.target.value })}
+                        placeholder="Image URL or upload ->"
+                        className="flex-1 bg-gray-100 border-none rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-[#D4FF00] transition-all outline-none"
+                      />
+                      <button
+                        onClick={() => posterInputRef.current?.click()}
+                        disabled={uploadingPoster}
+                        className="bg-black text-white px-4 rounded-xl hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center"
+                      >
+                        {uploadingPoster ? <span className="text-xs font-bold px-2">UPLOADING...</span> : <Upload size={18} />}
+                      </button>
+                      <input type="file" ref={posterInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'poster')} />
                     </div>
                   </div>
                 </div>
@@ -434,8 +434,8 @@ export default function App() {
                           onClick={() => setNewTournament({ ...newTournament, type: type as any })}
                           className={cn(
                             "px-4 py-3 rounded-xl font-bold text-xs border-2 transition-all capitalize",
-                            newTournament.type === type 
-                              ? "bg-[#D4FF00]/10 border-[#D4FF00] text-black" 
+                            newTournament.type === type
+                              ? "bg-[#D4FF00]/10 border-[#D4FF00] text-black"
                               : "border-gray-100 hover:border-gray-200 text-gray-400"
                           )}
                         >
@@ -449,7 +449,7 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Match Type</label>
-                    <select 
+                    <select
                       value={newTournament.match_type}
                       onChange={(e) => setNewTournament({ ...newTournament, match_type: e.target.value })}
                       className="w-full bg-gray-100 border-none rounded-xl px-4 py-3 font-medium focus:ring-2 focus:ring-[#D4FF00] outline-none"
@@ -463,7 +463,7 @@ export default function App() {
                   </div>
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Scoring</label>
-                    <select 
+                    <select
                       value={newTournament.scoring_format}
                       onChange={(e) => setNewTournament({ ...newTournament, scoring_format: e.target.value })}
                       className="w-full bg-gray-100 border-none rounded-xl px-4 py-3 font-medium focus:ring-2 focus:ring-[#D4FF00] outline-none"
@@ -481,13 +481,13 @@ export default function App() {
                 </div>
 
                 <div className="pt-4 flex gap-3">
-                  <button 
+                  <button
                     onClick={() => setIsCreating(false)}
                     className="flex-1 px-6 py-4 rounded-xl font-bold text-gray-400 hover:bg-gray-50 transition-colors"
                   >
                     CANCEL
                   </button>
-                  <button 
+                  <button
                     onClick={handleCreateTournament}
                     className="flex-1 px-6 py-4 bg-[#0a0a0a] text-white rounded-xl font-bold hover:bg-[#1a1a1a] transition-colors"
                   >

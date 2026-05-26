@@ -6,22 +6,56 @@ interface Choice {
   id: string;
   name: string;
   active: boolean;
+  color?: string;
+}
+
+const getContrastColor = (hexcolor: string) => {
+  let hex = hexcolor.replace('#', '');
+  if (hex.length === 3) {
+    hex = hex.split('').map(char => char + char).join('');
+  }
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 128 ? '#0a0a0a' : '#ffffff';
 }
 
 export default function PickerWheel({ onBack }: { onBack: () => void }) {
   const [choices, setChoices] = useState<Choice[]>([
-    { id: '1', name: 'Đội BB', active: true },
-    { id: '2', name: 'Đội DD', active: true },
-    { id: '3', name: 'Đội AA', active: true },
-    { id: '4', name: 'Đội EE', active: true },
-    { id: '5', name: 'Đội CC', active: true },
-    { id: '6', name: 'Đội FF', active: true },
+    { id: '1', name: 'YES', active: true },
+    { id: '2', name: 'NO', active: true },
+    { id: '3', name: 'YES', active: true },
+    { id: '4', name: 'NO', active: true },
+    { id: '5', name: 'YES', active: true },
+    { id: '6', name: 'NO', active: true },
   ]);
 
   const [newChoice, setNewChoice] = useState('');
   const [bulkInput, setBulkInput] = useState('');
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  // Color copy & paste states
+  const [copiedColor, setCopiedColor] = useState<string | null>(null);
+  const [copiedChoiceId, setCopiedChoiceId] = useState<string | null>(null);
+
+  const updateChoiceColor = (id: string, color: string) => {
+    setChoices(prev => prev.map(c => c.id === id ? { ...c, color } : c));
+  };
+
+  const handleCopyColor = (id: string, color: string) => {
+    try {
+      navigator.clipboard.writeText(color);
+    } catch (e) {
+      console.warn("Clipboard access denied", e);
+    }
+    setCopiedColor(color);
+    setCopiedChoiceId(id);
+    setTimeout(() => {
+      setCopiedChoiceId(null);
+    }, 1500);
+  };
 
   // Spin states
   const [spinning, setSpinning] = useState(false);
@@ -124,7 +158,7 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
       ctx.font = 'bold 16px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('Thêm lựa chọn để quay!', centerX, centerY);
+      ctx.fillText('Add options to spin!', centerX, centerY);
       return;
     }
 
@@ -137,7 +171,7 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius, angle, angle + arc);
       ctx.lineTo(centerX, centerY);
-      ctx.fillStyle = colors[i % colors.length];
+      ctx.fillStyle = choice.color || colors[i % colors.length];
       ctx.fill();
       ctx.strokeStyle = '#0a0a0a';
       ctx.lineWidth = 3;
@@ -150,13 +184,12 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
       // Contrast text color based on segment color
-      const isBright = i % colors.length === 0 || i % colors.length === 2 || i % colors.length === 8;
-      ctx.fillStyle = isBright ? '#0a0a0a' : '#ffffff';
-      ctx.font = 'black 13px sans-serif';
+      ctx.fillStyle = getContrastColor(choice.color || colors[i % colors.length]);
+      ctx.font = '900 13px sans-serif';
 
       // Truncate text if too long
       let text = choice.name;
-      if (text.length > 14) text = text.slice(0, 12) + '...';
+      if (text.length > 12) text = text.slice(0, 12) + '...';
 
       ctx.fillText(text, radius - 25, 0);
       ctx.restore();
@@ -199,7 +232,7 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
     }
 
     ctx.fillStyle = '#D4FF00';
-    ctx.font = 'black 16px sans-serif';
+    ctx.font = '900 16px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('SPIN', centerX, centerY - 1);
@@ -337,9 +370,9 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
             <ArrowLeft size={22} />
           </button>
           <div>
-            <span className="text-[9px] font-black text-[#D4FF00] uppercase tracking-widest">TIỆN ÍCH HỖ TRỢ</span>
+            <span className="text-[9px] font-black text-[#D4FF00] uppercase tracking-widest">Extension Tools</span>
             <h1 className="text-sm sm:text-base font-black uppercase tracking-tight text-white/90 flex items-center gap-1.5">
-              🎲 VÒNG QUAY BỐC THĂM
+              🎲 SPIN THE LUCKY WHEEL
             </h1>
           </div>
         </div>
@@ -347,7 +380,7 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
         <button
           onClick={() => setSoundEnabled(!soundEnabled)}
           className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full active:scale-95 transition-all text-white/80"
-          title={soundEnabled ? "Tắt âm thanh" : "Bật âm thanh"}
+          title={soundEnabled ? "Turn off sound" : "Turn on sound"}
         >
           {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
         </button>
@@ -376,7 +409,7 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
             disabled={spinning || activeChoices.length < 2}
             className={`mt-6 px-10 py-4 bg-[#D4FF00] text-black font-black uppercase tracking-wider rounded-2xl active:scale-95 transition-transform text-sm hover:opacity-90 disabled:opacity-30 disabled:scale-100 flex items-center gap-2 shadow-lg shadow-[#D4FF00]/10`}
           >
-            🎲 BẮT ĐẦU QUAY
+            🎲 START SPINNING
           </button>
         </div>
 
@@ -384,12 +417,12 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
         <div className="lg:col-span-5 flex flex-col gap-6 h-full min-h-[480px]">
           {/* Input Panel */}
           <div className="bg-white/5 border border-white/10 rounded-3xl p-5 space-y-4">
-            <h3 className="text-xs font-black uppercase tracking-widest text-[#D4FF00]">Thêm Lựa Chọn</h3>
+            <h3 className="text-xs font-black uppercase tracking-widest text-[#D4FF00]">Add Options</h3>
 
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="Nhập tên lựa chọn..."
+                placeholder="Enter your options..."
                 value={newChoice}
                 onChange={e => setNewChoice(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleAddChoice()}
@@ -411,15 +444,15 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
                 disabled={spinning}
                 className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold transition-all text-white/80 active:scale-95"
               >
-                📝 Nhập Hàng Loạt
+                📝 Import List
               </button>
               <button
                 onClick={shuffleChoices}
                 disabled={spinning}
                 className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold transition-all text-white/80 active:scale-95 flex items-center gap-1.5"
-                title="Tráo ngẫu nhiên"
+                title="Shuffle List"
               >
-                <Shuffle size={14} /> Tráo List
+                <Shuffle size={14} /> Shuffle List
               </button>
             </div>
           </div>
@@ -428,9 +461,9 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
           <div className="flex-1 bg-white/5 border border-white/10 rounded-3xl p-5 flex flex-col min-h-[300px] overflow-hidden">
             <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-xs font-black uppercase tracking-widest text-white/80">Danh sách ({choices.length})</h3>
+                <h3 className="text-xs font-black uppercase tracking-widest text-white/80">List ({choices.length})</h3>
                 <span className="bg-white/10 text-white/60 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  Quay: {activeChoices.length}
+                  Spin: {activeChoices.length}
                 </span>
               </div>
               {choices.length > 0 && (
@@ -439,7 +472,7 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
                   disabled={spinning}
                   className="text-xs font-bold text-red-400 hover:text-red-300 flex items-center gap-1 active:scale-95 disabled:opacity-50"
                 >
-                  <Trash2 size={13} /> Xóa Sạch
+                  <Trash2 size={13} /> Clear List
                 </button>
               )}
             </div>
@@ -449,11 +482,10 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
               {choices.map((c, i) => (
                 <div
                   key={c.id}
-                  className={`flex justify-between items-center px-4 py-2.5 rounded-xl border transition-all ${
-                    c.active
-                      ? 'bg-white/5 border-white/10 hover:border-white/20'
-                      : 'bg-white/2 border-white/5 opacity-40'
-                  }`}
+                  className={`flex justify-between items-center px-4 py-2.5 rounded-xl border transition-all ${c.active
+                    ? 'bg-white/5 border-white/10 hover:border-white/20'
+                    : 'bg-white/2 border-white/5 opacity-40'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <input
@@ -461,27 +493,82 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
                       checked={c.active}
                       onChange={() => toggleChoice(c.id)}
                       disabled={spinning}
-                      className="accent-[#D4FF00] rounded"
+                      className="accent-[#D4FF00] rounded cursor-pointer"
                     />
-                    <span className="text-xs font-bold text-white/90">
+
+                    {/* Interactive Color Bubble wrapping input type=color */}
+                    <div
+                      className="relative w-5 h-5 rounded-full border border-white/25 cursor-pointer flex items-center justify-center overflow-hidden transition-all active:scale-95 shadow shrink-0 hover:scale-105"
+                      style={{ backgroundColor: c.color || colors[i % colors.length] }}
+                      title="Change color"
+                    >
+                      <input
+                        type="color"
+                        value={c.color || colors[i % colors.length]}
+                        onChange={(e) => updateChoiceColor(c.id, e.target.value)}
+                        disabled={spinning}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full scale-150"
+                      />
+                    </div>
+
+                    <span className="text-xs font-bold text-white/90 truncate max-w-[140px] sm:max-w-[180px]">
                       {c.name}
                     </span>
                   </div>
-                  <button
-                    onClick={() => deleteChoice(c.id)}
-                    disabled={spinning}
-                    className="p-1 text-white/40 hover:text-red-400 rounded transition-colors disabled:opacity-30"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {/* Copy Color Button */}
+                    <button
+                      onClick={() => handleCopyColor(c.id, c.color || colors[i % colors.length])}
+                      disabled={spinning}
+                      className="p-1.5 text-white/40 hover:text-[#D4FF00] rounded hover:bg-white/5 transition-all active:scale-95 disabled:opacity-20 flex items-center justify-center"
+                      title="Copy color hex"
+                    >
+                      {copiedChoiceId === c.id ? (
+                        <svg className="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                          <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                          <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                        </svg>
+                      )}
+                    </button>
+
+                    {/* Paste Color Button */}
+                    {copiedColor && (
+                      <button
+                        onClick={() => updateChoiceColor(c.id, copiedColor)}
+                        disabled={spinning}
+                        className="p-1.5 text-white/40 hover:text-cyan-400 rounded hover:bg-white/5 transition-all active:scale-95 disabled:opacity-20 flex items-center justify-center animate-pulse"
+                        title="Paste copied color"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                          <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                        </svg>
+                      </button>
+                    )}
+
+                    {/* Delete button */}
+                    <button
+                      onClick={() => deleteChoice(c.id)}
+                      disabled={spinning}
+                      className="p-1.5 text-white/40 hover:text-red-400 rounded hover:bg-white/5 transition-all active:scale-95 disabled:opacity-20 flex items-center justify-center"
+                      title="Delete option"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               ))}
 
               {choices.length === 0 && (
                 <div className="h-full flex flex-col items-center justify-center text-center py-10 opacity-30 gap-2">
                   <HelpCircle size={32} />
-                  <p className="text-xs font-bold uppercase tracking-wider">Trống trơn</p>
-                  <p className="text-[10px] text-white/70">Nhập danh sách đội ở trên để bắt đầu bốc thăm.</p>
+                  <p className="text-xs font-bold uppercase tracking-wider">Empty List</p>
+                  <p className="text-[10px] text-white/70">Enter your list above to start spinning.</p>
                 </div>
               )}
             </div>
@@ -500,14 +587,14 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
               className="bg-[#0f0f11] border border-white/10 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4"
             >
               <div>
-                <h3 className="text-sm font-black uppercase tracking-wider text-[#D4FF00]">NHẬP DANH SÁCH HÀNG LOẠT</h3>
-                <p className="text-[10px] text-white/50 mt-1">Dán danh sách các đội bốc thăm ở đây. Mỗi đội một dòng.</p>
+                <h3 className="text-sm font-black uppercase tracking-wider text-[#D4FF00]">BULK IMPORT OPTIONS</h3>
+                <p className="text-[10px] text-white/50 mt-1">Paste your list of options here. One option per line.</p>
               </div>
 
               <textarea
                 value={bulkInput}
                 onChange={e => setBulkInput(e.target.value)}
-                placeholder="Ví dụ:&#10;Đội BB&#10;Đội DD&#10;Đội AA&#10;Đội EE"
+                placeholder="Example:&#10;Option A&#10;Option B&#10;Option C&#10;Option D"
                 rows={8}
                 className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-xs font-bold focus:ring-1 focus:ring-[#D4FF00] outline-none placeholder:text-white/20 font-mono"
               />
@@ -517,13 +604,13 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
                   onClick={() => setShowBulkModal(false)}
                   className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-xl active:scale-95 transition-transform text-xs"
                 >
-                  HỦY BỎ
+                  CANCEL
                 </button>
                 <button
                   onClick={handleBulkImport}
                   className="flex-1 py-3 bg-[#D4FF00] text-black font-black rounded-xl active:scale-95 transition-transform text-xs"
                 >
-                  XÁC NHẬN IMPORT
+                  IMPORT
                 </button>
               </div>
             </motion.div>
@@ -575,7 +662,7 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
 
               <div className="space-y-2">
                 <span className="text-[10px] font-black text-[#D4FF00] uppercase tracking-widest animate-pulse">
-                  BỐC THĂM ĐÃ XONG!
+                  THE WINNER IS!
                 </span>
                 <h2 className="text-3xl font-black text-white break-words tracking-tight uppercase px-4">
                   {winner.name}
@@ -587,13 +674,13 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
                   onClick={handleRemoveWinner}
                   className="w-full py-3 bg-[#D4FF00] text-black font-black rounded-2xl active:scale-95 transition-transform text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-lg shadow-[#D4FF00]/10"
                 >
-                  🗑️ LOẠI BỎ KHỎI VÒNG QUAY
+                  🗑️ REMOVE FROM WHEEL
                 </button>
                 <button
                   onClick={() => { setWinner(null); setShowConfetti(false); }}
                   className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-2xl active:scale-95 transition-transform text-xs uppercase tracking-wider"
                 >
-                  ĐÓNG (GIỮ LẠI ĐỘI)
+                  CLOSE (KEEP TEAM)
                 </button>
               </div>
             </motion.div>
