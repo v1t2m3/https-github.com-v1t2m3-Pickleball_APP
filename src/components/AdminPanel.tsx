@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/api';
-import { Users, Shield, ArrowLeft, Trash2, Edit2, Plus, Trophy, ChevronRight, Upload } from 'lucide-react';
+import { Users, Shield, ArrowLeft, Trash2, Edit2, Plus, Trophy, ChevronRight, Upload, Mail } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Tournament } from '../types';
+import InvitationsTab from './tabs/InvitationsTab';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -13,10 +14,11 @@ function cn(...inputs: ClassValue[]) {
 interface Props {
   onBack: () => void;
   onManageTournament?: (t: Tournament) => void;
+  initialTab?: 'users' | 'players' | 'tournaments' | 'invitations';
 }
 
-export default function AdminPanel({ onBack, onManageTournament }: Props) {
-  const [activeTab, setActiveTab] = useState<'users' | 'players' | 'tournaments'>('users');
+export default function AdminPanel({ onBack, onManageTournament, initialTab }: Props) {
+  const [activeTab, setActiveTab] = useState<'users' | 'players' | 'tournaments' | 'invitations'>(initialTab || 'users');
   const [users, setUsers] = useState<any[]>([]);
   const [players, setPlayers] = useState<any[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -197,6 +199,12 @@ export default function AdminPanel({ onBack, onManageTournament }: Props) {
             className={cn("px-6 py-3 rounded-xl font-bold flex items-center gap-2", activeTab === 'tournaments' ? 'bg-[#D4FF00] text-black' : 'bg-white text-gray-500 hover:bg-gray-50')}
           >
             <Trophy size={18} /> TOURNAMENTS
+          </button>
+          <button
+            onClick={() => setActiveTab('invitations')}
+            className={cn("px-6 py-3 rounded-xl font-bold flex items-center gap-2", activeTab === 'invitations' ? 'bg-[#D4FF00] text-black' : 'bg-white text-gray-500 hover:bg-gray-50')}
+          >
+            <Mail size={18} /> INVITATIONS
           </button>
         </div>
 
@@ -549,6 +557,10 @@ export default function AdminPanel({ onBack, onManageTournament }: Props) {
               </button>
             </div>
           </div>
+        )}
+
+        {activeTab === 'invitations' && (
+          <InvitationsTab />
         )}
       </div>
     </div>

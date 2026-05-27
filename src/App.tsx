@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Trophy, ListChecks, Plus, LogIn, ChevronRight, Activity, LogOut, Upload, Image as ImageIcon, Shield } from 'lucide-react';
+import { Trophy, ListChecks, Plus, LogIn, ChevronRight, Activity, LogOut, Upload, Image as ImageIcon, Shield, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Tournament, TournamentType } from './types';
 import TournamentView from './components/TournamentView';
 import Login from './components/Login';
 import AdminPanel from './components/AdminPanel';
 import PickerWheel from './components/PickerWheel';
+import PublicInvitationView from './components/PublicInvitationView';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useAuth } from './contexts/AuthContext';
@@ -23,7 +24,9 @@ export default function App() {
   const [isCreatingSocial, setIsCreatingSocial] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const [adminPanelInitialTab, setAdminPanelInitialTab] = useState<'users' | 'players' | 'tournaments' | 'invitations'>('users');
   const [isPickerWheelOpen, setIsPickerWheelOpen] = useState(false);
+  const [activeInvitationToken, setActiveInvitationToken] = useState<string | null>(null);
 
   const [newTournament, setNewTournament] = useState({
     name: '',
@@ -53,6 +56,14 @@ export default function App() {
 
   useEffect(() => {
     fetchTournaments();
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('t') || params.get('token');
+    if (token) {
+      setActiveInvitationToken(token);
+    }
   }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'banner' | 'poster') => {
@@ -115,6 +126,23 @@ export default function App() {
     }
   };
 
+  const handleInvitationClick = () => {
+    if (isAdmin) {
+      setAdminPanelInitialTab('invitations');
+      setIsAdminPanelOpen(true);
+    } else {
+      alert("Please login as Admin to manage and design invitation templates.");
+      setIsLoginOpen(true);
+    }
+  };
+
+  if (activeInvitationToken) {
+    return <PublicInvitationView token={activeInvitationToken} onBack={() => {
+      window.history.replaceState({}, document.title, "/");
+      setActiveInvitationToken(null);
+    }} />;
+  }
+
   if (isPickerWheelOpen) {
     return <PickerWheel onBack={() => setIsPickerWheelOpen(false)} />;
   }
@@ -122,6 +150,7 @@ export default function App() {
   if (isAdminPanelOpen && isAdmin) {
     return <AdminPanel
       onBack={() => setIsAdminPanelOpen(false)}
+      initialTab={adminPanelInitialTab}
       onManageTournament={(t) => {
         setIsAdminPanelOpen(false);
         setSelectedTournament(t);
@@ -158,6 +187,13 @@ export default function App() {
             className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-[#D4FF00] rounded-full font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1 active:scale-95 border border-[#D4FF00]/15"
           >
             🎲 Draw lots
+          </button>
+
+          <button
+            onClick={handleInvitationClick}
+            className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-[#D4FF00] rounded-full font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1 active:scale-95 border border-[#D4FF00]/15"
+          >
+            ✉ E-Invitation
           </button>
         </div>
 
