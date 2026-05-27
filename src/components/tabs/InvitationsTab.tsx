@@ -52,6 +52,8 @@ export default function InvitationsTab() {
   const [designConfig, setDesignConfig] = useState<Template['config'] | null>(null);
   const [selectedFieldId, setSelectedFieldId] = useState<string>('name');
   const [newRsvpOption, setNewRsvpOption] = useState('');
+  const [zoom, setZoom] = useState<number>(100);
+  const [imgSize, setImgSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   
   // Guest list manual adding
   const [newGuest, setNewGuest] = useState({ name: '', position: '', organization: '', phone: '', email: '', zalo: '' });
@@ -135,6 +137,16 @@ export default function InvitationsTab() {
     setDesignConfig(JSON.parse(JSON.stringify(t.config))); // Deep copy config
     setSelectedFieldId('name');
     setActiveSubView('design');
+    setZoom(100);
+    setImgSize({ width: 0, height: 0 });
+  };
+
+  const handleImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    setImgSize({
+      width: img.naturalWidth || img.width || 0,
+      height: img.naturalHeight || img.height || 0
+    });
   };
 
   const handleFieldChange = (fieldId: string, key: string, value: any) => {
@@ -554,51 +566,118 @@ export default function InvitationsTab() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Drag Board Canvas Column */}
             <div className="lg:col-span-7 flex flex-col items-center justify-center p-4 bg-gray-50 border border-gray-100 rounded-3xl relative select-none">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1">
-                <Move size={12} /> Drag labels directly on the card to reposition
-              </span>
+              
+              {/* Zoom and Workspace Control Bar */}
+              <div className="w-full flex flex-col sm:flex-row items-center justify-between bg-white border border-gray-200 rounded-2xl px-4 py-3 mb-4 shadow-sm gap-2">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
+                  <Move size={12} /> Kéo thả nhãn chữ bên dưới để căn chỉnh vị trí
+                </span>
+                
+                <div className="flex items-center gap-3 shrink-0">
+                  <button
+                    onClick={() => setZoom(prev => Math.max(10, prev - 10))}
+                    className="w-7 h-7 flex items-center justify-center bg-gray-100 hover:bg-gray-200 active:scale-95 rounded-lg text-gray-700 font-black transition-all"
+                    title="Zoom Out"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="range"
+                    min={10}
+                    max={200}
+                    value={zoom}
+                    onChange={e => setZoom(parseInt(e.target.value))}
+                    className="w-24 accent-black cursor-pointer"
+                  />
+                  <button
+                    onClick={() => setZoom(prev => Math.min(200, prev + 10))}
+                    className="w-7 h-7 flex items-center justify-center bg-gray-100 hover:bg-gray-200 active:scale-95 rounded-lg text-gray-700 font-black transition-all"
+                    title="Zoom In"
+                  >
+                    +
+                  </button>
+                  <span className="text-[11px] font-mono font-black text-gray-900 min-w-[36px] text-right">{zoom}%</span>
+                  <button
+                    onClick={() => setZoom(100)}
+                    className="px-2.5 py-1 border border-gray-200 hover:border-black rounded-lg text-[9px] font-black uppercase text-gray-600 hover:text-black transition-colors"
+                  >
+                    100%
+                  </button>
+                </div>
+              </div>
 
-              {/* Relative layout wrapping target image */}
-              <div
-                ref={dragContainerRef}
-                onMouseMove={handleDragMove}
-                onMouseUp={handleDragEnd}
-                onMouseLeave={handleDragEnd}
-                className="relative w-full max-w-[420px] aspect-auto border border-gray-200 rounded-2xl overflow-hidden shadow-2xl cursor-default"
-              >
-                <img
-                  src={selectedTemplate.background_url}
-                  alt="Backdrop"
-                  className="w-full h-auto pointer-events-none select-none"
-                />
+              {/* Viewport Workspace containing template image and labels */}
+              <div className="w-full h-[600px] overflow-auto bg-gray-950 border border-gray-900 rounded-2xl shadow-inner relative flex items-start justify-start p-6">
+                <div
+                  ref={dragContainerRef}
+                  onMouseMove={handleDragMove}
+                  onMouseUp={handleDragEnd}
+                  onMouseLeave={handleDragEnd}
+                  className="relative shadow-2xl border border-white/5 select-none mx-auto shrink-0 bg-black/40 rounded-xl overflow-hidden"
+                  style={(() => {
+                    let displayWidth = imgSize.width || 420;
+                    let displayHeight = imgSize.height || 420;
 
-                {/* Absolute overlay labels */}
-                {designConfig.fields.map(field => {
-                  const isSelected = field.id === selectedFieldId;
-                  return (
-                    <div
-                      key={field.id}
-                      onMouseDown={(e) => handleDragStart(e, field.id)}
-                      className={`absolute px-2 py-1 border rounded cursor-move select-none flex items-center gap-1.5 transition-all text-xs font-bold ${
-                        isSelected
-                          ? 'border-[#D4FF00] bg-[#D4FF00]/10 text-black shadow-lg ring-2 ring-[#D4FF00]'
-                          : 'border-white/40 bg-black/60 text-white hover:border-white shadow'
-                      }`}
-                      style={{
-                        top: `${field.y * 100}%`,
-                        left: `${field.x * 100}%`,
-                        transform: `translate(${field.align === 'center' ? '-50%' : field.align === 'right' ? '-100%' : '0'}, -50%)`,
-                        fontSize: `${field.fontSize * 0.75}px`, // Scaled preview font
-                        fontFamily: field.fontFamily || 'sans-serif',
-                        fontWeight: field.fontWeight || 'bold',
-                        color: field.color || '#ffffff'
-                      }}
-                    >
-                      <span>{field.label}</span>
-                      <Move size={10} className="opacity-50" />
-                    </div>
-                  );
-                })}
+                    if (imgSize.width && imgSize.height) {
+                      displayWidth = imgSize.width;
+                      displayHeight = imgSize.height;
+
+                      if (displayWidth > 1920 || displayHeight > 1920) {
+                        if (displayWidth > displayHeight) {
+                          displayWidth = 1920;
+                          displayHeight = (1920 / imgSize.width) * imgSize.height;
+                        } else {
+                          displayHeight = 1920;
+                          displayWidth = (1920 / imgSize.height) * imgSize.width;
+                        }
+                      }
+                    }
+
+                    const finalWidth = `${displayWidth * (zoom / 100)}px`;
+                    const finalHeight = imgSize.width ? `${displayHeight * (zoom / 100)}px` : 'auto';
+
+                    return {
+                      width: finalWidth,
+                      height: finalHeight,
+                      minWidth: finalWidth,
+                    };
+                  })()}
+                >
+                  <img
+                    src={selectedTemplate.background_url}
+                    alt="Backdrop"
+                    onLoad={handleImgLoad}
+                    className="w-full h-full pointer-events-none select-none block object-contain"
+                  />
+
+                  {/* Absolute overlay labels */}
+                  {designConfig.fields.map(field => {
+                    const isSelected = field.id === selectedFieldId;
+                    return (
+                      <div
+                        key={field.id}
+                        onMouseDown={(e) => handleDragStart(e, field.id)}
+                        className={`absolute px-2 py-1 border rounded cursor-move select-none flex items-center gap-1.5 transition-all text-xs font-bold ${
+                          isSelected
+                            ? 'border-[#D4FF00] bg-[#D4FF00]/10 text-black shadow-lg ring-2 ring-[#D4FF00]'
+                            : 'border-white/40 bg-black/60 text-white hover:border-white shadow'
+                        }`}
+                        style={{
+                          top: `${field.y * 100}%`,
+                          left: `${field.x * 100}%`,
+                          transform: `translate(${field.align === 'center' ? '-50%' : field.align === 'right' ? '-100%' : '0'}, -50%)`,
+                          fontSize: `${field.fontSize * (zoom / 100)}px`,
+                          fontFamily: field.fontFamily || 'sans-serif',
+                          fontWeight: field.fontWeight || 'bold',
+                          color: field.color || '#ffffff'
+                        }}
+                      >
+                        <span>{field.label}</span>
+                        <Move size={10} className="opacity-50" />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -648,11 +727,20 @@ export default function InvitationsTab() {
                           onChange={e => handleFieldChange(field.id, 'fontFamily', e.target.value)}
                           className="w-full bg-white border border-gray-200 rounded-xl px-2 py-2 text-xs outline-none font-bold"
                         >
-                          <option value="sans-serif">Sans Serif</option>
-                          <option value="serif">Serif</option>
+                          <option value="sans-serif">Sans Serif (Mặc định)</option>
+                          <option value="serif">Serif (Mặc định)</option>
                           <option value="monospace">Monospace</option>
-                          <option value="Montserrat">Montserrat</option>
-                          <option value="Inter">Inter</option>
+                          <option value="Inter">Inter (Hiện đại)</option>
+                          <option value="Montserrat">Montserrat (Mạnh mẽ)</option>
+                          <option value="Dancing Script">Dancing Script (Cá tính)</option>
+                          <option value="Charm">Charm (Mềm mại)</option>
+                          <option value="Marck Script">Marck Script (Bay bổng)</option>
+                          <option value="Pattaya">Pattaya (Nghệ thuật)</option>
+                          <option value="Itim">Itim (Dễ thương)</option>
+                          <option value="Bad Script">Bad Script (Tự nhiên)</option>
+                          <option value="Lobster">Lobster (Cổ điển)</option>
+                          <option value="Cinzel">Cinzel (Cổ kính)</option>
+                          <option value="Playfair Display">Playfair Display (Sang trọng)</option>
                         </select>
                       </div>
 
