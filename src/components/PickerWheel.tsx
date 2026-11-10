@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Trash2, Plus, Volume2, VolumeX, Shuffle, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import confetti from 'canvas-confetti';
 
 interface Choice {
   id: string;
@@ -67,6 +68,8 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
   const spinVelocityRef = useRef(0);
   const animationFrameRef = useRef<number | null>(null);
   const lastTickAngleRef = useRef(0);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const lastSoundTimeRef = useRef<number>(0);
 
   const activeChoices = choices.filter(c => c.active);
 
@@ -84,48 +87,83 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
     '#ADFF2F', // Green Yellow
   ];
 
-  // Play sound tick
-  const playTickSound = () => {
+  // Single shared AudioContext instance to prevent browser hardware audio exhaustion
+  const getAudioContext = () => {
+    if (!audioCtxRef.current) {
+      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtxClass) {
+        audioCtxRef.current = new AudioCtxClass();
+      }
+    }
+    if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume().catch(() => {});
+    }
+    return audioCtxRef.current;
+  };
+
+  // Play realistic mechanical ratchet click sound synchronized with velocity
+  const playTickSound = (velocity: number = 0.1) => {
     if (!soundEnabled) return;
+    const now = performance.now();
+    // Throttle to 25ms to prevent audio distortion at ultra-high rotational velocity
+    if (now - lastSoundTimeRef.current < 25) return;
+    lastSoundTimeRef.current = now;
+
     try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
       gain.connect(ctx.destination);
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, ctx.currentTime);
-      gain.gain.setValueAtTime(0.05, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+      // Pitch modulates slightly with angular velocity for realistic spinning sensation
+      const baseFreq = 650 + Math.min(velocity * 350, 450);
+      osc.type = 'triangle'; // Crisp mechanical wooden ratchet click
+      osc.frequency.setValueAtTime(baseFreq, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.035);
 
-      osc.start();
-      osc.stop(ctx.currentTime + 0.05);
-    } catch (e) {
-      console.warn("AudioContext block", e);
+      gain.gain.setValueAtTime(0.09, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.035);
+
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.035);
+    } catch {
+      // Audio playback error safely ignored
     }
   };
 
-  // Play winner sound
+  // Play triumphant winner fanfare (chime arpeggio: C5 -> E5 -> G5 -> C6)
   const playWinnerSound = () => {
     if (!soundEnabled) return;
     try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
+      const ctx = getAudioContext();
+      if (!ctx) return;
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3); // A5
-      gain.gain.setValueAtTime(0.1, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+      const startTime = ctx.currentTime;
 
-      osc.start();
-      osc.stop(ctx.currentTime + 0.5);
-    } catch (e) {
-      console.warn("AudioContext block", e);
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        const noteTime = startTime + idx * 0.1;
+        const duration = idx === notes.length - 1 ? 0.7 : 0.25;
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, noteTime);
+
+        gain.gain.setValueAtTime(0.12, noteTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, noteTime + duration);
+
+        osc.start(noteTime);
+        osc.stop(noteTime + duration);
+      });
+    } catch {
+      // Audio playback error safely ignored
     }
   };
 
@@ -243,17 +281,24 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
     drawWheel();
   }, [choices]);
 
-  // Initial draw
+  // Initial draw & audio cleanup
   useEffect(() => {
     drawWheel();
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
+        audioCtxRef.current.close().catch(() => {});
+      }
     };
   }, []);
 
   // Spin trigger
   const spin = () => {
     if (spinning || activeChoices.length < 2) return;
+
+    // Unlock and warm up AudioContext upon user gesture
+    getAudioContext();
+
     setSpinning(true);
     setWinner(null);
     setShowConfetti(false);
@@ -268,11 +313,11 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
       rotationAngleRef.current += spinVelocityRef.current;
       spinVelocityRef.current *= 0.986; // Friction (deceleration)
 
-      // Sound ticks logic when passing segments
+      // Sound ticks logic synchronized strictly with segments passing the pointer
       const currentAngle = rotationAngleRef.current;
       const angleDiff = currentAngle - lastTickAngleRef.current;
       if (angleDiff >= arc) {
-        playTickSound();
+        playTickSound(spinVelocityRef.current);
         lastTickAngleRef.current = currentAngle - (angleDiff % arc);
       }
 
@@ -295,6 +340,31 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
         setWinner(selectedWinner);
         setShowConfetti(true);
         playWinnerSound();
+
+        // Trigger celebratory canvas-confetti bursts
+        try {
+          confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+          setTimeout(() => {
+            confetti({
+              particleCount: 50,
+              angle: 60,
+              spread: 60,
+              origin: { x: 0.1, y: 0.7 }
+            });
+            confetti({
+              particleCount: 50,
+              angle: 120,
+              spread: 60,
+              origin: { x: 0.9, y: 0.7 }
+            });
+          }, 200);
+        } catch {
+          // Fallback handled by CSS confetti
+        }
       }
     };
 

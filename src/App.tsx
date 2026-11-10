@@ -17,7 +17,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export default function App() {
-  const { user, isAuthenticated, logout, isAdmin, isReferee } = useAuth();
+  const { user, isAuthenticated, logout, isAdmin, isReferee, hasPermission, hasAnyPermission } = useAuth();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -147,7 +147,9 @@ export default function App() {
     return <PickerWheel onBack={() => setIsPickerWheelOpen(false)} />;
   }
 
-  if (isAdminPanelOpen && isAdmin) {
+  const canOpenControlPanel = isAdmin || hasAnyPermission(['players:manage', 'tournaments:create', 'tournaments:edit', 'invitations:design', 'invitations:guests']);
+
+  if (isAdminPanelOpen && canOpenControlPanel) {
     return <AdminPanel
       onBack={() => setIsAdminPanelOpen(false)}
       initialTab={adminPanelInitialTab}
@@ -199,7 +201,7 @@ export default function App() {
 
         {isAuthenticated ? (
           <div className="flex items-center gap-4">
-            {isAdmin && (
+            {canOpenControlPanel && (
               <button
                 onClick={() => setIsAdminPanelOpen(true)}
                 className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-[#D4FF00] text-black rounded-full hover:bg-[#bce600] transition-colors"
@@ -235,7 +237,7 @@ export default function App() {
               <h2 className="text-4xl font-bold tracking-tighter mb-2">ACTIVE TOURNAMENTS</h2>
               <p className="text-gray-500 font-medium">Join or manage your pickleball events effortlessly.</p>
             </div>
-            {isAdmin && (
+            {(isAdmin || hasPermission('tournaments:create')) && (
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() => {

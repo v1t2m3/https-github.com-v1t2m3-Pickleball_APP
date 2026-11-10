@@ -27,9 +27,13 @@ type Tab = 'teams' | 'groups' | 'schedule' | 'bracket' | 'referee';
 export default function TournamentView({ tournament, onBack }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('teams');
   const [matches, setMatches] = useState<Match[]>([]);
-  const { isAdmin, isReferee } = useAuth();
+  const { isAdmin, isReferee, hasPermission } = useAuth();
 
-  const isOwner = isAdmin || isReferee; // Both have owner-like permissions for now
+  const canScore = isAdmin || isReferee || hasPermission('matches:score');
+  const canManageTeams = isAdmin || hasPermission('teams:manage');
+  const canManageGroups = isAdmin || hasPermission('groups:manage');
+  const canManageSchedule = isAdmin || hasPermission('schedule:manage');
+  const canManageBracket = isAdmin || hasPermission('bracket:manage');
 
   const loadData = async () => {
     try {
@@ -49,12 +53,14 @@ export default function TournamentView({ tournament, onBack }: Props) {
 
   const isSocial = tournament.format === 'social';
 
+  const isStaff = canScore || canManageTeams || canManageGroups || canManageSchedule || canManageBracket;
+
   const tabs = [
     { id: 'teams', label: 'Teams / Pairs', icon: Users },
     ...(!isSocial ? [{ id: 'groups', label: 'Groups & Standings', icon: ListChecks }] : []),
     { id: 'schedule', label: 'Schedule', icon: Calendar },
     ...(!isSocial ? [{ id: 'bracket', label: 'Bracket', icon: Trophy }] : []),
-    ...(isOwner ? [{ id: 'referee', label: 'Referee Hub', icon: Activity }] : []),
+    ...(canScore ? [{ id: 'referee', label: 'Referee Hub', icon: Activity }] : []),
   ] as { id: Tab, label: string, icon: any }[];
 
   return (
@@ -74,7 +80,7 @@ export default function TournamentView({ tournament, onBack }: Props) {
                 <span className="text-[10px] font-bold uppercase tracking-widest bg-gray-100 px-2 py-0.5 rounded">
                   {tournament.format || 'Format'}
                 </span>
-                {isOwner && <span className="text-[10px] font-bold uppercase tracking-widest bg-[#D4FF00] px-2 py-0.5 rounded italic">Staff</span>}
+                {isStaff && <span className="text-[10px] font-bold uppercase tracking-widest bg-[#D4FF00] px-2 py-0.5 rounded italic">Staff</span>}
               </div>
               <h1 className="text-2xl font-bold tracking-tight uppercase">{tournament.name}</h1>
             </div>
@@ -113,20 +119,20 @@ export default function TournamentView({ tournament, onBack }: Props) {
             {activeTab === 'teams' && (
               <TeamsTab
                 tournament={tournament}
-                isOwner={isAdmin}
+                isOwner={canManageTeams}
               />
             )}
             {activeTab === 'groups' && (
               <GroupsTab
                 tournament={tournament}
-                isOwner={isAdmin}
+                isOwner={canManageGroups}
               />
             )}
             {activeTab === 'schedule' && (
               <ScheduleTab
                 tournament={tournament}
                 matches={matches}
-                isOwner={isAdmin}
+                isOwner={canManageSchedule}
                 onReload={loadData}
               />
             )}
@@ -134,11 +140,11 @@ export default function TournamentView({ tournament, onBack }: Props) {
               <BracketTab
                 tournament={tournament}
                 matches={matches}
-                isOwner={isAdmin}
+                isOwner={canManageBracket}
                 onReload={loadData}
               />
             )}
-            {activeTab === 'referee' && isOwner && (
+            {activeTab === 'referee' && canScore && (
               <RefereeTab
                 tournament={tournament}
                 matches={matches}

@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '../lib/api';
 
-interface User {
+export interface User {
   id: number;
   username: string;
-  role: 'admin' | 'referee';
+  role: string;
+  permissions?: string[];
 }
 
 interface AuthContextType {
@@ -15,6 +16,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isReferee: boolean;
+  hasPermission: (perm: string) => boolean;
+  hasAnyPermission: (perms: string[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -55,10 +58,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const isAuthenticated = !!token;
   const isAdmin = user?.role === 'admin';
-  const isReferee = user?.role === 'referee';
+  const isReferee = user?.role === 'referee' || (Array.isArray(user?.permissions) && user.permissions.includes('matches:score'));
+
+  const hasPermission = (perm: string): boolean => {
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    const perms = Array.isArray(user.permissions) ? user.permissions : [];
+    return perms.includes('*') || perms.includes(perm);
+  };
+
+  const hasAnyPermission = (permsToCheck: string[]): boolean => {
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    const perms = Array.isArray(user.permissions) ? user.permissions : [];
+    return perms.includes('*') || permsToCheck.some(p => perms.includes(p));
+  };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated, isAdmin, isReferee }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      login, 
+      logout, 
+      isAuthenticated, 
+      isAdmin, 
+      isReferee,
+      hasPermission,
+      hasAnyPermission
+    }}>
       {children}
     </AuthContext.Provider>
   );
