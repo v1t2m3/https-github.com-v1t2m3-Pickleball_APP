@@ -36,6 +36,7 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
   const [bulkInput, setBulkInput] = useState('');
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [mobileTab, setMobileTab] = useState<'wheel' | 'options'>('wheel');
 
   // Color copy & paste states
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
@@ -430,42 +431,64 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
   return (
     <div className="min-h-screen bg-[#070708] text-white flex flex-col font-sans select-none overflow-x-hidden">
       {/* Header */}
-      <header className="px-6 py-4 bg-white/5 border-b border-white/10 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-3">
+      <header className="px-3 sm:px-6 py-2.5 sm:py-3.5 bg-white/5 border-b border-white/10 flex items-center justify-between sticky top-0 z-30 pt-safe">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             onClick={onBack}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors active:scale-95"
+            className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-colors active:scale-95 shrink-0"
             disabled={spinning}
           >
-            <ArrowLeft size={22} />
+            <ArrowLeft size={20} />
           </button>
-          <div>
-            <span className="text-[9px] font-black text-[#D4FF00] uppercase tracking-widest">Extension Tools</span>
-            <h1 className="text-sm sm:text-base font-black uppercase tracking-tight text-white/90 flex items-center gap-1.5">
-              🎲 SPIN THE LUCKY WHEEL
+          <div className="min-w-0">
+            <span className="text-[9px] font-black text-[#D4FF00] uppercase tracking-widest block">VÒNG QUAY MAY MẮN</span>
+            <h1 className="text-xs sm:text-base font-black uppercase tracking-tight text-white/90 flex items-center gap-1.5 truncate">
+              🎲 BỐC THĂM / CHỌN ĐỘI
             </h1>
           </div>
         </div>
 
         <button
           onClick={() => setSoundEnabled(!soundEnabled)}
-          className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full active:scale-95 transition-all text-white/80"
+          className="p-2 sm:p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full active:scale-95 transition-all text-white/80 shrink-0"
           title={soundEnabled ? "Turn off sound" : "Turn on sound"}
         >
           {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
         </button>
       </header>
 
+      {/* Mobile Mode Switcher Bar */}
+      <div className="flex lg:hidden bg-white/5 border-b border-white/10 p-1.5 justify-center gap-1.5">
+        <button
+          onClick={() => setMobileTab('wheel')}
+          className={`flex-1 max-w-[200px] py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+            mobileTab === 'wheel' ? 'bg-[#D4FF00] text-black shadow-sm font-extrabold' : 'text-white/60 hover:text-white'
+          }`}
+        >
+          🎲 VÒNG QUAY
+        </button>
+        <button
+          onClick={() => setMobileTab('options')}
+          className={`flex-1 max-w-[200px] py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+            mobileTab === 'options' ? 'bg-[#D4FF00] text-black shadow-sm font-extrabold' : 'text-white/60 hover:text-white'
+          }`}
+        >
+          📋 DANH SÁCH ({choices.length})
+        </button>
+      </div>
+
       {/* Main Layout Grid */}
-      <div className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
         {/* Left Col: The Wheel Canvas */}
-        <div className="lg:col-span-7 flex flex-col items-center justify-center p-4 bg-white/5 border border-white/10 rounded-3xl relative min-h-[480px]">
+        <div className={`lg:col-span-7 flex flex-col items-center justify-center p-3 sm:p-6 bg-white/5 border border-white/10 rounded-3xl relative min-h-[380px] sm:min-h-[480px] ${
+          mobileTab === 'wheel' ? 'flex' : 'hidden lg:flex'
+        }`}>
           {/* Wheel Pointer Arrow */}
           <div className="absolute top-[8px] z-10 flex flex-col items-center">
             <div className="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[20px] border-t-[#D4FF00] filter drop-shadow-[0_4px_6px_rgba(212,255,0,0.4)]"></div>
           </div>
 
-          <div className="relative aspect-square w-full max-w-[420px] active:scale-[0.99] transition-transform cursor-pointer" onClick={spin}>
+          <div className="relative aspect-square w-full max-w-[320px] sm:max-w-[420px] active:scale-[0.99] transition-transform cursor-pointer" onClick={spin}>
             <canvas
               ref={canvasRef}
               width={500}
@@ -474,17 +497,27 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
             />
           </div>
 
-          <button
-            onClick={spin}
-            disabled={spinning || activeChoices.length < 2}
-            className={`mt-6 px-10 py-4 bg-[#D4FF00] text-black font-black uppercase tracking-wider rounded-2xl active:scale-95 transition-transform text-sm hover:opacity-90 disabled:opacity-30 disabled:scale-100 flex items-center gap-2 shadow-lg shadow-[#D4FF00]/10`}
-          >
-            🎲 START SPINNING
-          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-3 mt-4 sm:mt-6 w-full max-w-sm justify-center">
+            <button
+              onClick={spin}
+              disabled={spinning || activeChoices.length < 2}
+              className={`w-full py-3.5 sm:py-4 px-8 bg-[#D4FF00] text-black font-black uppercase tracking-wider rounded-2xl active:scale-95 transition-transform text-xs sm:text-sm hover:opacity-90 disabled:opacity-30 disabled:scale-100 flex items-center justify-center gap-2 shadow-lg shadow-[#D4FF00]/15`}
+            >
+              🎲 QUAY NGAY ({activeChoices.length} Ô)
+            </button>
+            <button
+              onClick={() => setMobileTab('options')}
+              className="lg:hidden text-xs text-white/50 hover:text-white underline pt-1"
+            >
+              Chỉnh sửa danh sách ({choices.length} lựa chọn)
+            </button>
+          </div>
         </div>
 
         {/* Right Col: Inputs & List */}
-        <div className="lg:col-span-5 flex flex-col gap-6 h-full min-h-[480px]">
+        <div className={`lg:col-span-5 flex flex-col gap-4 sm:gap-6 h-full min-h-[350px] sm:min-h-[480px] ${
+          mobileTab === 'options' ? 'flex' : 'hidden lg:flex'
+        }`}>
           {/* Input Panel */}
           <div className="bg-white/5 border border-white/10 rounded-3xl p-5 space-y-4">
             <h3 className="text-xs font-black uppercase tracking-widest text-[#D4FF00]">Add Options</h3>

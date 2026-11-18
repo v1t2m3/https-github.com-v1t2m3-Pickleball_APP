@@ -147,22 +147,22 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
   return (
     <div className="space-y-8">
       {tournament.format === 'social' && isAdmin && (
-        <div className="bg-white p-6 md:p-8 rounded-3xl border shadow-sm space-y-6">
+        <div className="bg-white p-4 sm:p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4 sm:space-y-6">
           <div className="flex items-center gap-3">
-            <Trophy className="text-purple-600 bg-purple-100 p-2 rounded-2xl" size={42} />
+            <Trophy className="text-purple-600 bg-purple-100 p-2 rounded-2xl shrink-0" size={38} />
             <div>
-              <h3 className="text-lg font-black uppercase tracking-tight text-gray-900">SOCIAL MATCHMAKER & RANDOM SEED 🎲</h3>
-              <p className="text-xs text-gray-400 font-medium">Randomly select or manually pair teams to start live matches immediately.</p>
+              <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-gray-900">SOCIAL MATCHMAKER & RANDOM SEED 🎲</h3>
+              <p className="text-xs text-gray-400 font-medium">Bốc thăm ngẫu nhiên hoặc ghép cặp để bắt đầu trận đấu giao lưu ngay.</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Select Court</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1.5">Select Court</label>
               <select
                 value={selectedCourt}
                 onChange={e => setSelectedCourt(e.target.value)}
-                className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#D4FF00] font-bold text-sm"
+                className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 sm:py-3 outline-none focus:ring-2 focus:ring-[#D4FF00] font-bold text-xs sm:text-sm"
               >
                 <option value="Sân 1">Sân 1</option>
                 <option value="Sân 2">Sân 2</option>
@@ -173,11 +173,11 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
             </div>
 
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Team / Pair 1</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1.5">Team / Pair 1</label>
               <select
                 value={selectedTeam1}
                 onChange={e => setSelectedTeam1(e.target.value)}
-                className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#D4FF00] font-bold text-sm truncate"
+                className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 sm:py-3 outline-none focus:ring-2 focus:ring-[#D4FF00] font-bold text-xs sm:text-sm truncate"
               >
                 <option value="">-- Select Team 1 --</option>
                 {registeredTeams.map(t => (
@@ -187,11 +187,11 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
             </div>
 
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Team / Pair 2</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1.5">Team / Pair 2</label>
               <select
                 value={selectedTeam2}
                 onChange={e => setSelectedTeam2(e.target.value)}
-                className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#D4FF00] font-bold text-sm truncate"
+                className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 sm:py-3 outline-none focus:ring-2 focus:ring-[#D4FF00] font-bold text-xs sm:text-sm truncate"
               >
                 <option value="">-- Select Team 2 --</option>
                 {registeredTeams.map(t => (
@@ -203,7 +203,7 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
             <div className="flex gap-2">
               <button
                 onClick={handleRandomMatch}
-                className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all shadow-md shadow-indigo-500/10"
+                className="flex-1 py-2.5 sm:py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all shadow-md shadow-indigo-500/10"
               >
                 🎲 RANDOM
               </button>
@@ -211,9 +211,9 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
               <button
                 onClick={handleCreateSocialMatch}
                 disabled={loading}
-                className="flex-1 py-3 bg-black hover:bg-gray-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all"
+                className="flex-[1.5] py-2.5 sm:py-3 bg-black hover:bg-gray-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all"
               >
-                🚀 CREATE LIVE MATCH
+                🚀 LIVE MATCH
               </button>
             </div>
           </div>
@@ -382,103 +382,122 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
 
                 return (
                   <div key={m.id} className={cn(
-                    "rounded-3xl p-6 md:p-8 border-2 shadow-sm transition-all relative overflow-hidden",
-                    m.status === 'live' ? "bg-gray-800 border-[#D4FF00] shadow-[0_0_20px_rgba(212,255,0,0.05)]" : "bg-gray-400 border-white opacity-80 hover:opacity-100"
+                    "rounded-3xl p-4 sm:p-6 md:p-8 border-2 shadow-sm transition-all relative overflow-hidden",
+                    m.status === 'live'
+                      ? "bg-[#0c0d0f] border-[#D4FF00] shadow-[0_0_25px_rgba(212,255,0,0.08)]"
+                      : "bg-white border-gray-200"
                   )}>
                     {/* Sân & Thứ tự label */}
-                    <div className="absolute top-0 right-0 py-1.5 px-3 text-[#D4FF00] font-extrabold text-[11px] uppercase tracking-wider rounded-bl-xl bg-black">
+                    <div className="absolute top-0 right-0 py-1.5 px-3 text-[#D4FF00] font-extrabold text-[10px] sm:text-[11px] uppercase tracking-wider rounded-bl-xl bg-black">
                       {m.court ? `${m.court} - Match ${m.match_order || 1}` : (m.group_name || `Round ${m.round}`)}
                     </div>
 
-                    <div className="flex flex-col lg:flex-row gap-6 lg:gap-12 items-center justify-between mt-2">
+                    <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-12 items-center justify-between mt-3 sm:mt-2">
                       {/* Read-Only Scores Dashboard */}
-                      <div className="flex-1 w-full space-y-4">
+                      <div className="flex-1 w-full space-y-3 sm:space-y-4">
                         {/* Player 1 Card */}
                         <div className={cn(
-                          "flex items-center justify-between p-4 rounded-2xl border-[2px] transition-all",
-                          isServing1 ? "bg-white border-[#D4FF00] text-black" : "bg-gray border-white text-white"
+                          "flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border-2 transition-all",
+                          m.status === 'live'
+                            ? (isServing1 ? "bg-white border-[#D4FF00] text-black" : "bg-white/5 border-white/10 text-white")
+                            : "bg-gray-50 border-gray-100 text-gray-900"
                         )}>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 sm:gap-3 min-w-0 pr-2">
                             {isServing1 && (
-                              <div className="flex items-center gap-1 bg-[#D4FF00] text-black px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
+                              <div className="flex items-center gap-1 bg-[#D4FF00] text-black px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-wider shrink-0">
                                 SERVE {isDoubles ? m.server_number : ''}
                               </div>
                             )}
-                            <span className="text-lg font-bold uppercase truncate max-w-[200px] sm:max-w-xs">{m.team1_name || 'TBD'}</span>
+                            <span className="text-sm sm:text-base md:text-lg font-bold uppercase truncate">{m.team1_name || 'TBD'}</span>
                             {team1HasMatchPoint && (
-                              <span className="px-2 py-0.5 bg-red-600 text-red font-black text-[9px] tracking-widest rounded-full animate-pulse">
+                              <span className="px-2 py-0.5 bg-red-600 text-white font-black text-[8px] sm:text-[9px] tracking-widest rounded-full animate-pulse shrink-0">
                                 MATCH POINT
                               </span>
                             )}
                           </div>
-                          <span className="text-4xl font-black tabular-nums">{m.score_team1}</span>
+                          <span className={cn(
+                            "text-3xl sm:text-4xl font-black tabular-nums shrink-0",
+                            m.status === 'live' && isServing1 ? "text-black" : ""
+                          )}>
+                            {m.score_team1}
+                          </span>
                         </div>
 
                         {/* Player 2 Card */}
                         <div className={cn(
-                          "flex items-center justify-between p-4 rounded-2xl border-[2px] transition-all",
-                          isServing2 ? "bg-white border-[#D4FF00] text-black" : "bg-gray border-white text-white"
+                          "flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border-2 transition-all",
+                          m.status === 'live'
+                            ? (isServing2 ? "bg-white border-[#D4FF00] text-black" : "bg-white/5 border-white/10 text-white")
+                            : "bg-gray-50 border-gray-100 text-gray-900"
                         )}>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 sm:gap-3 min-w-0 pr-2">
                             {isServing2 && (
-                              <div className="flex items-center gap-1 bg-[#D4FF00] text-black px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
+                              <div className="flex items-center gap-1 bg-[#D4FF00] text-black px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-wider shrink-0">
                                 SERVE {isDoubles ? m.server_number : ''}
                               </div>
                             )}
-                            <span className="text-lg font-bold uppercase truncate max-w-[200px] sm:max-w-xs">{m.team2_name || 'TBD'}</span>
+                            <span className="text-sm sm:text-base md:text-lg font-bold uppercase truncate">{m.team2_name || 'TBD'}</span>
                             {team2HasMatchPoint && (
-                              <span className="px-2 py-0.5 bg-red-600 text-red font-black text-[9px] tracking-widest rounded-full animate-pulse">
+                              <span className="px-2 py-0.5 bg-red-600 text-white font-black text-[8px] sm:text-[9px] tracking-widest rounded-full animate-pulse shrink-0">
                                 MATCH POINT
                               </span>
                             )}
                           </div>
-                          <span className="text-4xl font-black tabular-nums">{m.score_team2}</span>
+                          <span className={cn(
+                            "text-3xl sm:text-4xl font-black tabular-nums shrink-0",
+                            m.status === 'live' && isServing2 ? "text-black" : ""
+                          )}>
+                            {m.score_team2}
+                          </span>
                         </div>
 
                         {/* Assigned Referee Indicator */}
                         {(m.referee_name || m.referee2_name) && (
-                          <div className="text-[10px] font-bold text-white uppercase pl-1">
+                          <div className={cn(
+                            "text-[10px] font-bold uppercase pl-1 truncate",
+                            m.status === 'live' ? "text-white/80" : "text-gray-500"
+                          )}>
                             👮 REFEREE: {m.referee_name || 'N/A'}{m.referee2_name ? ` & ${m.referee2_name}` : ''}
                           </div>
                         )}
                       </div>
 
                       {/* Actions Column */}
-                      <div className="w-full lg:w-80 flex flex-col gap-3">
+                      <div className="w-full lg:w-72 flex flex-col gap-2.5 sm:gap-3">
                         {!isAssigned ? (
-                          <div className="bg-red-50 text-red-600 border border-red-100 p-4 rounded-2xl text-center space-y-2">
-                            <Lock className="mx-auto" size={24} />
-                            <div className="text-xs font-black uppercase tracking-wider">NOT ASSIGNED</div>
-                            <div className="text-[10px] opacity-80">Referee not assigned to this match. Please contact Admin.</div>
+                          <div className="bg-red-50 text-red-600 border border-red-100 p-3 sm:p-4 rounded-2xl text-center space-y-1 sm:space-y-2">
+                            <Lock className="mx-auto" size={20} />
+                            <div className="text-xs font-black uppercase tracking-wider">CHƯA PHÂN CÔNG</div>
+                            <div className="text-[10px] opacity-80">Trọng tài chưa được gán vào trận này. Vui lòng liên hệ Admin.</div>
                           </div>
                         ) : m.status === 'upcoming' ? (
                           <button
                             onClick={() => startMatch(m.id)}
-                            className="w-full py-5 bg-[#0a0a0a] text-white rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-black transition-transform active:scale-95"
+                            className="w-full py-3.5 sm:py-4 bg-[#0a0a0a] text-white rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 hover:bg-black transition-transform active:scale-95 shadow-sm"
                           >
-                            <Play fill="white" size={18} /> START MATCH
+                            <Play fill="white" size={16} /> BẮT ĐẦU TRẬN ĐẤU
                           </button>
                         ) : (
                           <>
                             <button
                               onClick={() => setSelectedScoringMatch(m)}
-                              className="w-full py-5 bg-[#D4FF00] text-black rounded-2xl font-black flex items-center justify-center gap-2 hover:scale-[1.02] transition-all uppercase tracking-wide shadow-md shadow-[#D4FF00]/10 border border-[#D4FF00]"
+                              className="w-full py-3.5 sm:py-4 bg-[#D4FF00] text-black rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition-all uppercase tracking-wide shadow-md shadow-[#D4FF00]/15 border border-[#D4FF00]"
                             >
-                              <Shield size={18} /> ENTER SCORE
+                              <Shield size={16} /> NHẬP ĐIỂM SỐ
                             </button>
 
                             <button
                               onClick={() => completeMatch(m.id)}
-                              className="w-full py-3.5 bg-white/5 border border-[#D4FF00] text-[#D4FF00] hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition-all uppercase"
+                              className="w-full py-2.5 sm:py-3 bg-white/5 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all uppercase active:scale-95"
                             >
-                              <CheckCircle size={14} /> COMPLETE MATCH
+                              <CheckCircle size={14} /> KẾT THÚC TRẬN
                             </button>
                           </>
                         )}
                       </div>
                     </div>
                   </div>
-                )
+                );
               })}
               {sortedMatches.length === 0 && (
                 <div className="text-center py-12 bg-white rounded-3xl border border-gray-100 text-gray-400 font-medium">

@@ -208,27 +208,27 @@ export default function BracketBuilderModal({ tournament, onClose, onUpdate }: P
   };
 
   return (
-    <div className="fixed inset-0 bg-[#070708]/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-white text-gray-900 w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border border-gray-100 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 bg-[#070708]/95 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-white text-gray-900 w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border border-gray-100 flex flex-col max-h-[92vh]">
         {/* Header */}
-        <header className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-          <div className="flex items-center gap-3">
-            <Layers className="text-[#D4FF00] bg-black p-1.5 rounded-xl" size={32} />
-            <div>
-              <h2 className="font-black text-lg uppercase tracking-tight">SETUP DRAW / SEEDING</h2>
-              <p className="text-xs text-gray-400 font-medium">Manual draw or auto cross-seed</p>
+        <header className="px-4 sm:px-6 py-3.5 sm:py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <Layers className="text-[#D4FF00] bg-black p-1.5 rounded-xl shrink-0" size={30} />
+            <div className="min-w-0">
+              <h2 className="font-black text-sm sm:text-lg uppercase tracking-tight truncate">SETUP DRAW / SEEDING</h2>
+              <p className="text-[10px] sm:text-xs text-gray-400 font-medium truncate">Bốc thăm chia nhánh knockout hoặc gán hạt giống</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors active:scale-95 shrink-0"
           >
             <X size={20} />
           </button>
         </header>
 
         {/* Content */}
-        <div className="flex-1 p-6 overflow-y-auto space-y-6">
+        <div className="flex-1 p-3.5 sm:p-6 overflow-y-auto no-scrollbar space-y-4 sm:space-y-6">
           {errorMsg && (
             <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2 border border-red-100">
               <ShieldAlert size={16} /> {errorMsg}
@@ -329,19 +329,19 @@ export default function BracketBuilderModal({ tournament, onClose, onUpdate }: P
         </div>
 
         {/* Footer */}
-        <footer className="px-6 py-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+        <footer className="px-4 sm:px-6 py-3.5 sm:py-5 border-t border-gray-100 flex justify-end gap-2.5 sm:gap-3 bg-gray-50/50 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
           <button
             onClick={onClose}
-            className="px-6 py-3 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-transform active:scale-95"
+            className="flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 sm:py-3 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded-xl text-xs sm:text-sm transition-transform active:scale-95"
           >
             HỦY BỎ
           </button>
           <button
             onClick={handleSaveBracket}
             disabled={loading}
-            className="px-8 py-3 bg-[#D4FF00] hover:bg-[#bce600] text-black font-black rounded-xl text-sm flex items-center gap-2 transition-transform active:scale-95 shadow-sm"
+            className="flex-1 sm:flex-initial px-5 sm:px-8 py-2.5 sm:py-3 bg-[#D4FF00] hover:bg-[#bce600] text-black font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-sm"
           >
-            <Play fill="black" size={16} /> {loading ? 'INITIALIZING...' : 'SAVE BRACKET'}
+            <Play fill="black" size={15} /> {loading ? 'SAVING...' : 'LƯU NHÁNH ĐẤU'}
           </button>
         </footer>
       </div>

@@ -194,59 +194,59 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
   return (
     <div className="fixed inset-0 bg-[#070708] text-white z-50 flex flex-col font-sans select-none overflow-hidden">
       {/* Header */}
-      <header className="px-6 py-4 bg-white/5 border-b border-white/10 flex items-center justify-between sticky top-0">
-        <div className="flex items-center gap-3">
+      <header className="px-3 sm:px-6 py-2.5 sm:py-3.5 bg-white/5 border-b border-white/10 flex items-center justify-between sticky top-0 z-10 pt-safe">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-colors active:scale-95 shrink-0"
           >
-            <X size={24} />
+            <X size={22} />
           </button>
-          <div>
-            <span className="text-[10px] font-bold text-[#D4FF00] uppercase tracking-wider">{tournament.name}</span>
-            <h1 className="text-sm font-bold uppercase tracking-tight text-white/90">{match.round} • {isDoubles ? 'Doubles' : 'Singles'}</h1>
+          <div className="min-w-0">
+            <span className="text-[9px] sm:text-[10px] font-bold text-[#D4FF00] uppercase tracking-wider block truncate">{tournament.name}</span>
+            <h1 className="text-xs sm:text-sm font-bold uppercase tracking-tight text-white/90 truncate">{match.round} • {isDoubles ? 'Doubles' : 'Singles'}</h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <button
             onClick={() => setManualMode(!manualMode)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all ${manualMode ? 'bg-[#D4FF00] text-black' : 'bg-white/10 text-white/70 hover:bg-white/20'
+            className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 sm:gap-1.5 transition-all active:scale-95 ${manualMode ? 'bg-[#D4FF00] text-black font-black' : 'bg-white/10 text-white/80 hover:bg-white/20'
               }`}
           >
-            <Settings size={14} /> {manualMode ? 'MANUAL: ON' : 'AUTO RULES'}
+            <Settings size={13} /> {manualMode ? 'MANUAL' : 'AUTO'}
           </button>
 
-          <div className="text-[10px] font-mono opacity-40">
-            {saving ? 'SYNCING...' : 'SYNCED'}
+          <div className="text-[9px] sm:text-[10px] font-mono opacity-50">
+            {saving ? 'SYNC...' : 'SYNCED'}
           </div>
         </div>
       </header>
 
       {/* Landscape Rotation Suggestion Tooltip (only visible on mobile portrait) */}
-      <div className="block landscape:hidden bg-[#D4FF00]/15 border-b border-[#D4FF00]/20 text-center py-2.5 px-4 text-[10px] font-black text-[#D4FF00] tracking-wider uppercase">
-        🔄 ROTATE PHONE FOR BEST VIEW
+      <div className="block landscape:hidden bg-[#D4FF00]/10 border-b border-[#D4FF00]/20 text-center py-1.5 sm:py-2 px-3 text-[9px] sm:text-[10px] font-black text-[#D4FF00] tracking-wider uppercase">
+        🔄 XOAY NGANG ĐIỆN THOẠI ĐỂ CÓ GIAO DIỆN BẢNG ĐIỂM TỐT NHẤT
       </div>
 
       {/* Main Score Area */}
-      <main className="flex-1 flex flex-col justify-around p-6 gap-6 overflow-y-auto">
+      <main className="flex-1 flex flex-col justify-around p-3 sm:p-6 gap-3 sm:gap-6 overflow-y-auto no-scrollbar">
 
         {/* Setup Serving State Banner if uninitialized */}
         {!servingTeamId && status === 'live' && (
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 text-center max-w-md mx-auto w-full animate-pulse">
-            <Trophy className="mx-auto text-[#D4FF00] mb-3" size={32} />
-            <h3 className="font-bold text-lg mb-2">CHỌN ĐỘI PHÁT BÓNG TRƯỚC</h3>
-            <p className="text-xs text-white/50 mb-6">Trọng tài hãy chọn đội và lượt phát bóng để bắt đầu chế độ tự động tính điểm.</p>
-            <div className="flex flex-col gap-3">
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-4 sm:p-6 text-center max-w-md mx-auto w-full animate-pulse">
+            <Trophy className="mx-auto text-[#D4FF00] mb-2 sm:mb-3" size={28} />
+            <h3 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">CHỌN ĐỘI PHÁT BÓNG TRƯỚC</h3>
+            <p className="text-[11px] sm:text-xs text-white/50 mb-4 sm:mb-6">Trọng tài hãy chọn đội và lượt phát bóng để bắt đầu chế độ tự động tính điểm.</p>
+            <div className="flex flex-col gap-2.5 sm:gap-3">
               <button
                 onClick={() => { setServingTeamManual(match.team1_id); setServerNumberManual(isDoubles ? 2 : 1); }}
-                className="w-full py-3 bg-[#D4FF00] text-black font-black rounded-xl text-sm uppercase tracking-wide"
+                className="w-full py-2.5 sm:py-3 bg-[#D4FF00] text-black font-black rounded-xl text-xs sm:text-sm uppercase tracking-wide active:scale-95 transition-transform"
               >
                 {match.team1_name || 'Home Team'} Phát Bóng {isDoubles && '(Server 2)'}
               </button>
               <button
                 onClick={() => { setServingTeamManual(match.team2_id); setServerNumberManual(isDoubles ? 2 : 1); }}
-                className="w-full py-3 bg-white/10 text-white font-bold rounded-xl text-sm uppercase tracking-wide hover:bg-white/20"
+                className="w-full py-2.5 sm:py-3 bg-white/10 text-white font-bold rounded-xl text-xs sm:text-sm uppercase tracking-wide hover:bg-white/20 active:scale-95 transition-transform"
               >
                 {match.team2_name || 'Away Team'} Phát Bóng {isDoubles && '(Server 2)'}
               </button>
@@ -256,31 +256,31 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
 
         {/* Dynamic Display Grid */}
         {(servingTeamId || !status || status !== 'live') && (
-          <div className="grid grid-cols-2 gap-3 sm:gap-6 max-w-5xl mx-auto w-full flex-1 items-stretch">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-6 max-w-5xl mx-auto w-full flex-1 items-stretch">
 
             {/* Team 1 Score Card */}
-            <div className={`relative rounded-2xl p-4 sm:p-8 border-2 transition-all flex flex-col justify-between items-center ${servingTeamId === match.team1_id
+            <div className={`relative rounded-2xl p-3 sm:p-6 md:p-8 border-2 transition-all flex flex-col justify-between items-center ${servingTeamId === match.team1_id
                 ? 'bg-white/[0.04] border-[#D4FF00] shadow-[0_0_30px_rgba(212,255,0,0.1)]'
                 : 'bg-white/[0.01] border-white/5 opacity-70'
               }`}>
               {/* Match Point Alert */}
               {team1HasMatchPoint && (
-                <div className="absolute -top-3 px-3 py-0.5 sm:px-4 sm:py-1 bg-red-600 text-white font-black text-[8px] sm:text-[10px] tracking-widest rounded-full animate-bounce">
+                <div className="absolute -top-3 px-2 sm:px-4 py-0.5 sm:py-1 bg-red-600 text-white font-black text-[7px] sm:text-[10px] tracking-widest rounded-full animate-bounce">
                   MATCH POINT
                 </div>
               )}
 
-              <div className="text-center w-full">
-                <span className="text-[9px] sm:text-xs uppercase text-white/40 tracking-wider font-bold block mb-0.5 sm:mb-1">HOME TEAM</span>
-                <h2 className="text-xs sm:text-lg md:text-2xl font-black truncate max-w-xs mx-auto px-1">{match.team1_name || 'TBD'}</h2>
+              <div className="text-center w-full min-w-0">
+                <span className="text-[8px] sm:text-xs uppercase text-white/40 tracking-wider font-bold block mb-0.5 sm:mb-1">HOME TEAM</span>
+                <h2 className="text-xs sm:text-base md:text-xl font-black line-clamp-2 max-w-xs mx-auto px-1">{match.team1_name || 'TBD'}</h2>
               </div>
 
               {/* Serving Indicator details */}
-              <div className="flex items-center gap-2 my-1 sm:my-3">
+              <div className="flex items-center gap-1 sm:gap-2 my-1 sm:my-3">
                 {servingTeamId === match.team1_id && (
-                  <div className="flex items-center gap-1.5 bg-[#D4FF00]/10 border border-[#D4FF00]/30 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[#D4FF00] text-[9px] sm:text-xs font-bold uppercase relative">
-                    <span className="h-2 w-2 rounded-full bg-[#D4FF00] inline-block animate-ping"></span>
-                    <span className="h-2 w-2 rounded-full bg-[#D4FF00] inline-block absolute"></span>
+                  <div className="flex items-center gap-1 bg-[#D4FF00]/15 border border-[#D4FF00]/40 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[#D4FF00] text-[8px] sm:text-xs font-black uppercase relative">
+                    <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#D4FF00] inline-block animate-ping"></span>
+                    <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#D4FF00] inline-block absolute"></span>
                     <span className="ml-1 sm:ml-1.5">SERVICE {isDoubles ? serverNumber : ''}</span>
                   </div>
                 )}
@@ -288,51 +288,51 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
 
               {/* Big Score Display */}
               <div className="text-center my-1 sm:my-4">
-                <div className="text-5xl sm:text-8xl md:text-9xl font-black tracking-tighter tabular-nums text-white">
+                <div className="text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter tabular-nums text-white">
                   {score1}
                 </div>
               </div>
 
               {/* Manual Control Buttons */}
               {manualMode ? (
-                <div className="flex gap-2 sm:gap-4 mt-2 w-full justify-center">
+                <div className="flex gap-2 sm:gap-4 mt-1 sm:mt-2 w-full justify-center">
                   <button
                     onClick={() => adjustScoreManual(1, -1)}
-                    className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 font-bold flex items-center justify-center text-xs sm:text-lg active:scale-90 transition-transform"
+                    className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 font-black flex items-center justify-center text-sm sm:text-lg active:scale-90 transition-transform"
                   >-</button>
                   <button
                     onClick={() => adjustScoreManual(1, 1)}
-                    className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-white/15 border border-white/20 hover:bg-white/25 font-bold flex items-center justify-center text-xs sm:text-lg active:scale-90 transition-transform"
+                    className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/15 border border-white/20 hover:bg-white/25 font-black flex items-center justify-center text-sm sm:text-lg active:scale-90 transition-transform text-[#D4FF00]"
                   >+</button>
                 </div>
               ) : (
-                <div className="h-3 sm:h-8"></div>
+                <div className="h-2 sm:h-8"></div>
               )}
             </div>
 
             {/* Team 2 Score Card */}
-            <div className={`relative rounded-2xl p-4 sm:p-8 border-2 transition-all flex flex-col justify-between items-center ${servingTeamId === match.team2_id
+            <div className={`relative rounded-2xl p-3 sm:p-6 md:p-8 border-2 transition-all flex flex-col justify-between items-center ${servingTeamId === match.team2_id
                 ? 'bg-white/[0.04] border-[#D4FF00] shadow-[0_0_30px_rgba(212,255,0,0.1)]'
                 : 'bg-white/[0.01] border-white/5 opacity-80'
               }`}>
               {/* Match Point Alert */}
               {team2HasMatchPoint && (
-                <div className="absolute -top-3 px-3 py-0.5 sm:px-4 sm:py-1 bg-red-600 text-white font-black text-[8px] sm:text-[10px] tracking-widest rounded-full animate-bounce">
+                <div className="absolute -top-3 px-2 sm:px-4 py-0.5 sm:py-1 bg-red-600 text-white font-black text-[7px] sm:text-[10px] tracking-widest rounded-full animate-bounce">
                   MATCH POINT
                 </div>
               )}
 
-              <div className="text-center w-full">
-                <span className="text-[9px] sm:text-xs uppercase text-white/40 tracking-wider font-bold block mb-0.5 sm:mb-1">AWAY TEAM</span>
-                <h2 className="text-xs sm:text-lg md:text-2xl font-black truncate max-w-xs mx-auto px-1">{match.team2_name || 'TBD'}</h2>
+              <div className="text-center w-full min-w-0">
+                <span className="text-[8px] sm:text-xs uppercase text-white/40 tracking-wider font-bold block mb-0.5 sm:mb-1">AWAY TEAM</span>
+                <h2 className="text-xs sm:text-base md:text-xl font-black line-clamp-2 max-w-xs mx-auto px-1">{match.team2_name || 'TBD'}</h2>
               </div>
 
               {/* Serving Indicator details */}
-              <div className="flex items-center gap-2 my-1 sm:my-3">
+              <div className="flex items-center gap-1 sm:gap-2 my-1 sm:my-3">
                 {servingTeamId === match.team2_id && (
-                  <div className="flex items-center gap-1.5 bg-[#D4FF00]/10 border border-[#D4FF00]/30 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[#D4FF00] text-[9px] sm:text-xs font-bold uppercase relative">
-                    <span className="h-2 w-2 rounded-full bg-[#D4FF00] inline-block animate-ping"></span>
-                    <span className="h-2 w-2 rounded-full bg-[#D4FF00] inline-block absolute"></span>
+                  <div className="flex items-center gap-1 bg-[#D4FF00]/15 border border-[#D4FF00]/40 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[#D4FF00] text-[8px] sm:text-xs font-black uppercase relative">
+                    <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#D4FF00] inline-block animate-ping"></span>
+                    <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#D4FF00] inline-block absolute"></span>
                     <span className="ml-1 sm:ml-1.5">SERVICE {isDoubles ? serverNumber : ''}</span>
                   </div>
                 )}
@@ -340,25 +340,25 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
 
               {/* Big Score Display */}
               <div className="text-center my-1 sm:my-4">
-                <div className="text-5xl sm:text-8xl md:text-9xl font-black tracking-tighter tabular-nums text-white">
+                <div className="text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter tabular-nums text-white">
                   {score2}
                 </div>
               </div>
 
               {/* Manual Control Buttons */}
               {manualMode ? (
-                <div className="flex gap-2 sm:gap-4 mt-2 w-full justify-center">
+                <div className="flex gap-2 sm:gap-4 mt-1 sm:mt-2 w-full justify-center">
                   <button
                     onClick={() => adjustScoreManual(2, -1)}
-                    className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 font-bold flex items-center justify-center text-xs sm:text-lg active:scale-90 transition-transform"
+                    className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 font-black flex items-center justify-center text-sm sm:text-lg active:scale-90 transition-transform"
                   >-</button>
                   <button
                     onClick={() => adjustScoreManual(2, 1)}
-                    className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-white/15 border border-white/20 hover:bg-white/25 font-bold flex items-center justify-center text-xs sm:text-lg active:scale-90 transition-transform"
+                    className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/15 border border-white/20 hover:bg-white/25 font-black flex items-center justify-center text-sm sm:text-lg active:scale-90 transition-transform text-[#D4FF00]"
                   >+</button>
                 </div>
               ) : (
-                <div className="h-3 sm:h-8"></div>
+                <div className="h-2 sm:h-8"></div>
               )}
             </div>
 
@@ -368,35 +368,35 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
 
       {/* Manual Mode Extra Overrides */}
       {manualMode && servingTeamId && (
-        <div className="px-6 py-3 bg-white/[0.02] border-t border-white/5 flex flex-wrap gap-4 items-center justify-center text-xs">
-          <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl">
-            <span className="font-bold opacity-60">GIAO BÓNG:</span>
+        <div className="px-3 sm:px-6 py-2.5 sm:py-3 bg-white/[0.02] border-t border-white/5 flex flex-wrap gap-2 sm:gap-4 items-center justify-center text-xs">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-white/5 px-3 py-1.5 rounded-xl">
+            <span className="font-bold text-[10px] sm:text-xs opacity-60">GIAO BÓNG:</span>
             <button
               onClick={() => setServingTeamManual(match.team1_id)}
-              className={`px-3 py-1 rounded-lg font-bold uppercase ${servingTeamId === match.team1_id ? 'bg-[#D4FF00] text-black' : 'bg-white/10'}`}
+              className={`px-2.5 py-1 rounded-lg font-bold text-[10px] sm:text-xs uppercase transition-all ${servingTeamId === match.team1_id ? 'bg-[#D4FF00] text-black font-black' : 'bg-white/10'}`}
             >
               {match.team1_name?.split('/')?.[0] || 'Home'}
             </button>
             <button
               onClick={() => setServingTeamManual(match.team2_id)}
-              className={`px-3 py-1 rounded-lg font-bold uppercase ${servingTeamId === match.team2_id ? 'bg-[#D4FF00] text-black' : 'bg-white/10'}`}
+              className={`px-2.5 py-1 rounded-lg font-bold text-[10px] sm:text-xs uppercase transition-all ${servingTeamId === match.team2_id ? 'bg-[#D4FF00] text-black font-black' : 'bg-white/10'}`}
             >
               {match.team2_name?.split('/')?.[0] || 'Away'}
             </button>
           </div>
 
           {isDoubles && (
-            <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl">
-              <span className="font-bold opacity-60">LƯỢT GIAO BÓNG:</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-white/5 px-3 py-1.5 rounded-xl">
+              <span className="font-bold text-[10px] sm:text-xs opacity-60">LƯỢT:</span>
               <button
                 onClick={() => setServerNumberManual(1)}
-                className={`px-3 py-1 rounded-lg font-bold ${serverNumber === 1 ? 'bg-[#D4FF00] text-black' : 'bg-white/10'}`}
+                className={`px-2.5 py-1 rounded-lg font-bold text-[10px] sm:text-xs transition-all ${serverNumber === 1 ? 'bg-[#D4FF00] text-black font-black' : 'bg-white/10'}`}
               >
                 1
               </button>
               <button
                 onClick={() => setServerNumberManual(2)}
-                className={`px-3 py-1 rounded-lg font-bold ${serverNumber === 2 ? 'bg-[#D4FF00] text-black' : 'bg-white/10'}`}
+                className={`px-2.5 py-1 rounded-lg font-bold text-[10px] sm:text-xs transition-all ${serverNumber === 2 ? 'bg-[#D4FF00] text-black font-black' : 'bg-white/10'}`}
               >
                 2
               </button>
@@ -406,41 +406,41 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
       )}
 
       {/* Main Action Controllers Bottom Bar */}
-      <footer className="p-4 bg-white/5 border-t border-white/10 flex flex-col gap-3 sticky bottom-0">
+      <footer className="p-3 sm:p-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] bg-white/5 border-t border-white/10 flex flex-col gap-2 sm:gap-3 sticky bottom-0">
 
         {/* Core Scoring Actions Row (Side-by-side) */}
         {status === 'live' && servingTeamId && !manualMode && (
-          <div className="flex gap-3 w-full">
+          <div className="flex gap-2 sm:gap-3 w-full">
             {/* Rally Won Button */}
             <button
               onClick={handleServingTeamWins}
-              className="flex-[2] py-4 bg-[#D4FF00] hover:bg-[#bce600] text-black font-black text-sm sm:text-base rounded-xl active:scale-95 transition-all flex items-center justify-center gap-1.5 hover:shadow-lg hover:shadow-[#D4FF00]/10"
+              className="flex-[2] py-3.5 sm:py-4 bg-[#D4FF00] hover:bg-[#bce600] text-black font-black text-xs sm:text-sm md:text-base rounded-xl active:scale-95 transition-all flex items-center justify-center gap-1 shadow-lg shadow-[#D4FF00]/15"
             >
-              +1 ĐIỂM (BÊN GIAO THẮNG)
+              <span>+1 ĐIỂM (GIAO THẮNG)</span>
             </button>
 
             {/* Fault Sideout Button */}
             <button
               onClick={handleFault}
-              className="flex-1 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-sm sm:text-base rounded-xl active:scale-95 transition-all flex items-center justify-center gap-1.5"
+              className="flex-1 py-3.5 sm:py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-xs sm:text-sm md:text-base rounded-xl active:scale-95 transition-all flex items-center justify-center gap-1"
             >
-              LỖI / ĐỔI LƯỢT
+              <span>LỖI / ĐỔI BÊN</span>
             </button>
           </div>
         )}
 
         {status === 'upcoming' && (
-          <div className="w-full py-4 text-center text-white/50 text-sm font-bold bg-white/5 border border-white/10 rounded-xl">
+          <div className="w-full py-3 sm:py-4 text-center text-white/50 text-xs sm:text-sm font-bold bg-white/5 border border-white/10 rounded-xl">
             TRẬN ĐẤU CHƯA BẮT ĐẦU
           </div>
         )}
 
         {/* Secondary Actions Row (Side-by-side) */}
-        <div className="flex gap-3 w-full justify-between items-center">
+        <div className="flex gap-2 sm:gap-3 w-full justify-between items-center">
           <button
             onClick={handleUndo}
             disabled={history.length === 0}
-            className="flex-1 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 text-white/80 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+            className="flex-1 py-2 sm:py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 text-white/80 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
           >
             <Undo2 size={14} /> HOÀN TÁC
           </button>
@@ -448,7 +448,7 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
           {status === 'live' && (
             <button
               onClick={handleSubmitResult}
-              className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md"
+              className="flex-1 py-2 sm:py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md"
             >
               <CheckCircle size={14} /> KẾT THÚC
             </button>

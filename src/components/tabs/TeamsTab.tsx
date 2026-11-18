@@ -71,20 +71,20 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {isOwner && (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <Users size={20} /> {isDoubles ? 'PAIR PLAYERS (DOUBLES)' : 'REGISTER PLAYER (SINGLES)'}
+        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2">
+            <Users size={18} className="text-gray-700" /> {isDoubles ? 'GHÉP CẶP ĐẤU (DOUBLES)' : 'ĐĂNG KÝ VẬN ĐỘNG VIÊN'}
           </h3>
-          <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
               <select
                 value={newTeam.p1}
                 onChange={e => setNewTeam({ ...newTeam, p1: e.target.value })}
-                className="bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none"
+                className="bg-gray-50 border-none rounded-xl px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold focus:ring-2 focus:ring-[#D4FF00] outline-none"
               >
-                <option value="">Select Player 1</option>
+                <option value="">Chọn VĐV 1...</option>
                 {players.map(p => <option key={p.id} value={p.id}>{p.name} ({p.gender})</option>)}
               </select>
 
@@ -92,26 +92,26 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
                 <select
                   value={newTeam.p2}
                   onChange={e => setNewTeam({ ...newTeam, p2: e.target.value })}
-                  className="bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none"
+                  className="bg-gray-50 border-none rounded-xl px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold focus:ring-2 focus:ring-[#D4FF00] outline-none"
                 >
-                  <option value="">Select Player 2</option>
+                  <option value="">Chọn VĐV 2...</option>
                   {players.map(p => <option key={p.id} value={p.id}>{p.name} ({p.gender})</option>)}
                 </select>
               )}
 
               <input
                 type="text"
-                placeholder="Custom Team Name (Optional)"
+                placeholder="Tên Đội / Cặp (Tùy chọn)"
                 value={newTeam.name}
                 onChange={e => setNewTeam({ ...newTeam, name: e.target.value })}
-                className="bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none"
+                className="bg-gray-50 border-none rounded-xl px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold focus:ring-2 focus:ring-[#D4FF00] outline-none"
               />
 
               <button
                 onClick={handleCreateTeam}
-                className="bg-[#0a0a0a] text-white font-bold py-3 rounded-xl hover:bg-[#1a1a1a] flex items-center justify-center gap-2"
+                className="bg-[#0a0a0a] text-white font-black py-2.5 sm:py-3 rounded-xl hover:bg-[#1a1a1a] active:scale-95 transition-all flex items-center justify-center gap-1.5 text-xs uppercase tracking-wider shadow-sm"
               >
-                <Plus size={18} /> {isDoubles ? 'CREATE PAIR' : 'REGISTER'}
+                <Plus size={16} /> {isDoubles ? 'TẠO CẶP ĐẤU' : 'ĐĂNG KÝ'}
               </button>
             </div>
 
@@ -122,21 +122,21 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
                 onChange={(e) => setShowAllPlayers(e.target.checked)}
                 className="rounded border-gray-300 text-[#D4FF00] focus:ring-[#D4FF00] w-4 h-4 cursor-pointer"
               />
-              Show all players in system (Ignore tournament filter)
+              Hiển thị toàn bộ VĐV trong hệ thống (bỏ qua lọc giải)
             </label>
           </div>
         </div>
       )}
 
-      <div className="space-y-10">
+      <div className="space-y-8 sm:space-y-10">
         {sortedClubs.map(clubName => {
           const clubTeams = groupedTeams[clubName];
           return (
-            <div key={clubName} className="space-y-4">
-              <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
-                <Building className="text-[#D4FF00] bg-black p-1.5 rounded-lg" size={28} />
+            <div key={clubName} className="space-y-3 sm:space-y-4">
+              <div className="flex items-center gap-2.5 sm:gap-3 border-b border-gray-100 pb-2.5 sm:pb-3">
+                <Building className="text-[#D4FF00] bg-black p-1.5 rounded-lg shrink-0" size={26} />
                 <div>
-                  <h4 className="font-black text-base sm:text-lg uppercase tracking-tight text-gray-900">
+                  <h4 className="font-black text-sm sm:text-lg uppercase tracking-tight text-gray-900">
                     {clubName === 'Tự do / Khác' ? '🌱 ' : '🏢 '}
                     {clubName}
                   </h4>
@@ -146,29 +146,29 @@ export default function TeamsTab({ tournament, isOwner }: { tournament: Tourname
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {clubTeams.map(t => (
-                  <div key={t.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-start hover:border-[#D4FF00] transition-colors relative overflow-hidden group">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-lg text-gray-900 truncate">{t.name}</div>
-                      <div className="text-sm text-gray-500 mt-3 flex flex-col gap-1.5">
+                  <div key={t.id} className="bg-white p-3.5 sm:p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-start hover:border-[#D4FF00] transition-colors relative overflow-hidden group">
+                    <div className="flex-1 min-w-0 pr-2">
+                      <div className="font-bold text-base sm:text-lg text-gray-900 truncate">{t.name}</div>
+                      <div className="text-xs sm:text-sm text-gray-500 mt-2 sm:mt-3 flex flex-col gap-1 sm:gap-1.5">
                         <span className="flex items-center gap-2 truncate">
-                          <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                          <span className="font-semibold text-gray-700">{t.p1_name}</span>
-                          {t.p1_club && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase">{t.p1_club}</span>}
+                          <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0"></span>
+                          <span className="font-semibold text-gray-700 truncate">{t.p1_name}</span>
+                          {t.p1_club && <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase shrink-0">{t.p1_club}</span>}
                         </span>
                         {t.p2_name && (
                           <span className="flex items-center gap-2 truncate">
-                            <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                            <span className="font-semibold text-gray-700">{t.p2_name}</span>
-                            {t.p2_club && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase">{t.p2_club}</span>}
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0"></span>
+                            <span className="font-semibold text-gray-700 truncate">{t.p2_name}</span>
+                            {t.p2_club && <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase shrink-0">{t.p2_club}</span>}
                           </span>
                         )}
                       </div>
                     </div>
                     {isOwner && (
-                      <button onClick={() => handleDelete(t.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-full active:scale-95 transition-transform">
-                        <Trash2 size={18} />
+                      <button onClick={() => handleDelete(t.id)} className="p-1.5 sm:p-2 text-red-500 hover:bg-red-50 rounded-full active:scale-95 transition-transform shrink-0" title="Delete">
+                        <Trash2 size={16} />
                       </button>
                     )}
                   </div>

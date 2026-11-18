@@ -347,45 +347,45 @@ export default function AdminPanel({ onBack, onManageTournament, initialTab }: P
   return (
     <div className="min-h-screen bg-[#f5f5f5]">
       {/* Header */}
-      <div className="bg-[#0a0a0a] text-white px-6 py-4 flex items-center gap-4 sticky top-0 z-40">
-        <button onClick={onBack} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+      <header className="bg-[#0a0a0a] text-white px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center gap-3 sticky top-0 z-40 pt-safe shadow-sm">
+        <button onClick={onBack} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-colors active:scale-95">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold tracking-tight">CONTROL PANEL</h1>
-      </div>
+        <h1 className="text-base sm:text-xl font-bold tracking-tight">CONTROL PANEL (HỆ THỐNG QUẢN TRỊ)</h1>
+      </header>
 
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="flex gap-4 mb-8 overflow-x-auto pb-1">
+      <div className="max-w-6xl mx-auto p-3 sm:p-6 pb-16">
+        <div className="flex gap-1.5 sm:gap-3 mb-6 sm:mb-8 overflow-x-auto no-scrollbar pb-1">
           {isAdmin && (
             <button
               onClick={() => setActiveTab('users')}
-              className={cn("px-6 py-3 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap", activeTab === 'users' ? 'bg-[#D4FF00] text-black' : 'bg-white text-gray-500 hover:bg-gray-50')}
+              className={cn("px-3.5 sm:px-6 py-2 sm:py-3 rounded-xl font-bold flex items-center gap-1.5 sm:gap-2 whitespace-nowrap text-xs sm:text-sm active:scale-95 transition-all shrink-0", activeTab === 'users' ? 'bg-[#D4FF00] text-black shadow-sm font-black' : 'bg-white text-gray-600 hover:bg-gray-50')}
             >
-              <Shield size={18} /> PHÂN QUYỀN (RBAC)
+              <Shield size={16} /> PHÂN QUYỀN (RBAC)
             </button>
           )}
           {(isAdmin || hasPermission('players:manage')) && (
             <button
               onClick={() => setActiveTab('players')}
-              className={cn("px-6 py-3 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap", activeTab === 'players' ? 'bg-[#D4FF00] text-black' : 'bg-white text-gray-500 hover:bg-gray-50')}
+              className={cn("px-3.5 sm:px-6 py-2 sm:py-3 rounded-xl font-bold flex items-center gap-1.5 sm:gap-2 whitespace-nowrap text-xs sm:text-sm active:scale-95 transition-all shrink-0", activeTab === 'players' ? 'bg-[#D4FF00] text-black shadow-sm font-black' : 'bg-white text-gray-600 hover:bg-gray-50')}
             >
-              <Users size={18} /> VẬN ĐỘNG VIÊN
+              <Users size={16} /> VẬN ĐỘNG VIÊN
             </button>
           )}
           {(isAdmin || hasAnyPermission(['tournaments:create', 'tournaments:edit'])) && (
             <button
               onClick={() => setActiveTab('tournaments')}
-              className={cn("px-6 py-3 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap", activeTab === 'tournaments' ? 'bg-[#D4FF00] text-black' : 'bg-white text-gray-500 hover:bg-gray-50')}
+              className={cn("px-3.5 sm:px-6 py-2 sm:py-3 rounded-xl font-bold flex items-center gap-1.5 sm:gap-2 whitespace-nowrap text-xs sm:text-sm active:scale-95 transition-all shrink-0", activeTab === 'tournaments' ? 'bg-[#D4FF00] text-black shadow-sm font-black' : 'bg-white text-gray-600 hover:bg-gray-50')}
             >
-              <Trophy size={18} /> GIẢI ĐẤU
+              <Trophy size={16} /> GIẢI ĐẤU
             </button>
           )}
           {(isAdmin || hasAnyPermission(['invitations:design', 'invitations:guests'])) && (
             <button
               onClick={() => setActiveTab('invitations')}
-              className={cn("px-6 py-3 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap", activeTab === 'invitations' ? 'bg-[#D4FF00] text-black' : 'bg-white text-gray-500 hover:bg-gray-50')}
+              className={cn("px-3.5 sm:px-6 py-2 sm:py-3 rounded-xl font-bold flex items-center gap-1.5 sm:gap-2 whitespace-nowrap text-xs sm:text-sm active:scale-95 transition-all shrink-0", activeTab === 'invitations' ? 'bg-[#D4FF00] text-black shadow-sm font-black' : 'bg-white text-gray-600 hover:bg-gray-50')}
             >
-              <Mail size={18} /> THIỆP MỜI (E-INVITE)
+              <Mail size={16} /> THIỆP MỜI (E-INVITE)
             </button>
           )}
         </div>

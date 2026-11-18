@@ -415,14 +415,14 @@ export default function InvitationsTab() {
   const statsPending = guests.filter(g => g.rsvp_status === 'pending').length;
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 min-h-[500px]">
+    <div className="bg-white rounded-3xl p-3.5 sm:p-6 shadow-sm border border-gray-100 min-h-[500px]">
       {/* Subview 1: Templates List */}
       {activeSubView === 'list' && (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           <div className="flex justify-between items-end">
             <div>
-              <h2 className="text-3xl font-black tracking-tight text-[#0a0a0a]">INVITATION TEMPLATES</h2>
-              <p className="text-gray-400 text-xs mt-1">Design invitation cards and manage guest lists for tournaments & events.</p>
+              <h2 className="text-xl sm:text-3xl font-black tracking-tight text-[#0a0a0a]">THƯ MỜI ĐIỆN TỬ (E-INVITATION)</h2>
+              <p className="text-gray-400 text-xs mt-1">Thiết kế mẫu thiệp mời, xuất link và theo dõi phản hồi khách mời RSVP.</p>
             </div>
           </div>
 
@@ -837,47 +837,47 @@ export default function InvitationsTab() {
 
       {/* Subview 3: Guest & RSVP Dashboard */}
       {activeSubView === 'guests' && selectedTemplate && (
-        <div className="space-y-8 animate-in fade-in duration-200">
+        <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-200">
           {/* Header row */}
-          <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               <button
                 onClick={() => { setActiveSubView('list'); setSelectedTemplate(null); }}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors animate-in"
+                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors shrink-0"
               >
                 <ArrowLeft size={18} />
               </button>
-              <div>
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">GUESTS DASHBOARD</span>
-                <h3 className="text-xl font-black text-gray-900 leading-none mt-1">Guests List: {selectedTemplate.name}</h3>
+              <div className="min-w-0">
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">GUESTS DASHBOARD</span>
+                <h3 className="text-base sm:text-xl font-black text-gray-900 leading-tight mt-0.5 truncate">Khách mời: {selectedTemplate.name}</h3>
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={handleDownloadSampleCsv}
-                className="px-4 py-2 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-xl font-bold text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all"
                 title="Download CSV templates structure"
               >
-                <Download size={14} /> Sample CSV
+                <Download size={13} /> Mẫu CSV
               </button>
               <button
                 onClick={() => csvInputRef.current?.click()}
                 disabled={importing}
-                className="px-4 py-2 bg-black hover:bg-gray-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-black hover:bg-gray-800 text-white rounded-xl font-bold text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow"
                 title="Import guest list from CSV"
               >
-                {importing ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <Upload size={14} />} Import CSV
+                {importing ? <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <Upload size={13} />} Nhập CSV
               </button>
               <input type="file" ref={csvInputRef} className="hidden" accept=".csv" onChange={handleImportCsv} />
 
               {guests.length > 0 && (
                 <button
                   onClick={handleExportExcel}
-                  className="px-4 py-2 bg-[#D4FF00] hover:bg-[#bce600] text-black rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#D4FF00] hover:bg-[#bce600] text-black rounded-xl font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow"
                   title="Export results Excel spreadsheet"
                 >
-                  <Download size={14} /> Export Results
+                  <Download size={13} /> Xuất Excel
                 </button>
               )}
             </div>

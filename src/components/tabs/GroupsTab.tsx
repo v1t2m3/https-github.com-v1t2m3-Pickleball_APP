@@ -92,82 +92,85 @@ export default function GroupsTab({ tournament, isOwner }: { tournament: Tournam
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {isOwner && (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-end gap-4">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
           <div className="flex-1">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-2">Create New Group</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1.5">Create New Group</label>
             <input 
               type="text" 
               placeholder="e.g. Group A" 
               value={newGroupName}
               onChange={e => setNewGroupName(e.target.value)}
-              className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#D4FF00] outline-none"
+              className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 sm:py-3 text-sm focus:ring-2 focus:ring-[#D4FF00] outline-none font-bold"
             />
           </div>
           <button 
             onClick={handleCreateGroup}
-            className="bg-[#0a0a0a] text-white font-bold px-6 py-3 rounded-xl hover:bg-[#1a1a1a] flex items-center gap-2"
+            className="w-full sm:w-auto bg-[#0a0a0a] text-white font-bold px-6 py-2.5 sm:py-3 rounded-xl hover:bg-[#1a1a1a] active:scale-95 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wide shrink-0"
           >
-            <Plus size={18} /> ADD
+            <Plus size={16} /> ADD GROUP
           </button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {groups.map(g => (
           <div key={g.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="bg-[#0a0a0a] text-white p-4 flex justify-between items-center">
-              <h3 className="font-bold flex items-center gap-2"><ListChecks size={18} className="text-[#D4FF00]" /> {g.name}</h3>
+            <div className="bg-[#0a0a0a] text-white p-3.5 sm:p-4 flex justify-between items-center">
+              <h3 className="font-black text-sm sm:text-base flex items-center gap-2 uppercase tracking-wide">
+                <ListChecks size={18} className="text-[#D4FF00]" /> {g.name}
+              </h3>
               {isOwner && (
-                <button onClick={() => handleDeleteGroup(g.id)} className="text-red-400 hover:text-red-300">
+                <button onClick={() => handleDeleteGroup(g.id)} className="p-1 text-red-400 hover:text-red-300 rounded active:scale-90 transition-transform">
                   <Trash2 size={16} />
                 </button>
               )}
             </div>
             
-            <div className="p-4">
+            <div className="p-3 sm:p-4">
               {/* Standings Table */}
-              <div className="overflow-x-auto mb-6">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-gray-400 uppercase bg-gray-50">
+              <div className="overflow-x-auto no-scrollbar mb-4 sm:mb-6">
+                <table className="w-full text-xs sm:text-sm text-left">
+                  <thead className="text-[10px] sm:text-xs text-gray-400 uppercase bg-gray-50">
                     <tr>
-                      <th className="px-4 py-2 rounded-l-lg">Team</th>
-                      <th className="px-2 py-2 text-center">P</th>
-                      <th className="px-2 py-2 text-center">W</th>
-                      <th className="px-2 py-2 text-center">L</th>
-                      <th className="px-2 py-2 text-center">+/-</th>
-                      <th className="px-2 py-2 text-center rounded-r-lg">Pts</th>
+                      <th className="px-3 sm:px-4 py-2 rounded-l-lg">Team</th>
+                      <th className="px-1.5 sm:px-2 py-2 text-center" title="Matches Played">P</th>
+                      <th className="px-1.5 sm:px-2 py-2 text-center" title="Wins">W</th>
+                      <th className="px-1.5 sm:px-2 py-2 text-center" title="Losses">L</th>
+                      <th className="px-1.5 sm:px-2 py-2 text-center" title="Point Difference">+/-</th>
+                      <th className="px-2 sm:px-3 py-2 text-center rounded-r-lg font-black text-black">Pts</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(standings[g.id] || []).map((s, index) => (
                       <tr key={s.team_id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
-                        <td className="px-4 py-3 font-bold flex items-center gap-2">
-                          <span className="text-gray-400 text-xs w-4">{index + 1}.</span> {s.team_name}
+                        <td className="px-3 sm:px-4 py-2.5 sm:py-3 font-bold flex items-center gap-1.5 min-w-[120px]">
+                          <span className="text-gray-400 text-[10px] sm:text-xs w-4 shrink-0">{index + 1}.</span>
+                          <span className="truncate">{s.team_name}</span>
                         </td>
-                        <td className="px-2 py-3 text-center">{s.played}</td>
-                        <td className="px-2 py-3 text-center text-green-600 font-medium">{s.wins}</td>
-                        <td className="px-2 py-3 text-center text-red-600 font-medium">{s.losses}</td>
-                        <td className="px-2 py-3 text-center">{s.point_diff > 0 ? `+${s.point_diff}` : s.point_diff}</td>
-                        <td className="px-2 py-3 text-center font-bold">{s.points}</td>
+                        <td className="px-1.5 sm:px-2 py-2.5 sm:py-3 text-center">{s.played}</td>
+                        <td className="px-1.5 sm:px-2 py-2.5 sm:py-3 text-center text-green-600 font-bold">{s.wins}</td>
+                        <td className="px-1.5 sm:px-2 py-2.5 sm:py-3 text-center text-red-500 font-medium">{s.losses}</td>
+                        <td className="px-1.5 sm:px-2 py-2.5 sm:py-3 text-center font-mono text-[11px] sm:text-xs">{s.point_diff > 0 ? `+${s.point_diff}` : s.point_diff}</td>
+                        <td className="px-2 sm:px-3 py-2.5 sm:py-3 text-center font-black text-black">{s.points}</td>
                       </tr>
                     ))}
                     {(!standings[g.id] || standings[g.id].length === 0) && g.teams?.map((t: any) => (
                       <tr key={t.id} className="border-b border-gray-50 last:border-0 group">
-                        <td className="px-4 py-3 font-medium flex justify-between items-center">
-                          {t.name}
+                        <td className="px-3 sm:px-4 py-2.5 sm:py-3 font-medium flex justify-between items-center min-w-[120px]">
+                          <span className="truncate">{t.name}</span>
                           {isOwner && (
-                            <button onClick={() => handleRemoveTeam(g.id, t.id)} className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700">
+                            <button onClick={() => handleRemoveTeam(g.id, t.id)} className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 p-1">
                               <Trash2 size={14} />
                             </button>
                           )}
                         </td>
-                        <td className="px-2 py-3 text-center">-</td>
-                        <td className="px-2 py-3 text-center">-</td>
-                        <td className="px-2 py-3 text-center">-</td>
-                        <td className="px-2 py-3 text-center">-</td>
-                        <td className="px-2 py-3 text-center">-</td>
+                        <td className="px-1.5 sm:px-2 py-2.5 sm:py-3 text-center">-</td>
+                        <td className="px-1.5 sm:px-2 py-2.5 sm:py-3 text-center">-</td>
+                        <td className="px-1.5 sm:px-2 py-2.5 sm:py-3 text-center">-</td>
+                        <td className="px-1.5 sm:px-2 py-2.5 sm:py-3 text-center">-</td>
+                        <td className="px-2 sm:px-3 py-2.5 sm:py-3 text-center">-</td>
                       </tr>
                     ))}
                   </tbody>
@@ -176,11 +179,11 @@ export default function GroupsTab({ tournament, isOwner }: { tournament: Tournam
 
               {/* Add Team to Group */}
               {isOwner && (
-                <div className="flex gap-2 border-t pt-4">
+                <div className="flex flex-col sm:flex-row gap-2 border-t border-gray-100 pt-3">
                   <select 
                     value={selectedTeam} 
                     onChange={e => setSelectedTeam(e.target.value)}
-                    className="flex-1 bg-gray-50 border-none rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#D4FF00] outline-none"
+                    className="flex-1 bg-gray-50 border-none rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#D4FF00] outline-none truncate"
                   >
                     <option value="">Select team to assign...</option>
                     {teams.filter(t => !g.teams?.find((gt:any) => gt.id === t.id)).map(t => (
@@ -189,7 +192,7 @@ export default function GroupsTab({ tournament, isOwner }: { tournament: Tournam
                   </select>
                   <button 
                     onClick={() => handleAssignTeam(g.id)}
-                    className="bg-[#D4FF00] text-black font-bold px-4 rounded-lg text-sm hover:bg-[#bce600]"
+                    className="w-full sm:w-auto bg-[#D4FF00] text-black font-black px-4 py-2.5 rounded-xl text-xs sm:text-sm hover:bg-[#bce600] active:scale-95 transition-all uppercase tracking-wide shrink-0"
                   >
                     Assign
                   </button>

@@ -131,8 +131,9 @@ export default function PublicInvitationView({ token, onBack }: Props) {
 
         canvas.width = displayWidth * dpr;
         canvas.height = displayHeight * dpr;
-        canvas.style.width = `${displayWidth}px`;
-        canvas.style.height = `${displayHeight}px`;
+        canvas.style.width = '100%';
+        canvas.style.maxWidth = `${displayWidth}px`;
+        canvas.style.height = 'auto';
 
         ctx.scale(dpr, dpr);
 
@@ -262,37 +263,39 @@ export default function PublicInvitationView({ token, onBack }: Props) {
       </div>
 
       {/* Header */}
-      <header className="px-6 py-4 bg-white/5 border-b border-white/10 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#D4FF00] rounded-full flex items-center justify-center">
-            <span className="text-black text-sm font-black">✉</span>
+      <header className="px-3 sm:px-6 py-2.5 sm:py-3.5 bg-white/5 border-b border-white/10 flex items-center justify-between sticky top-0 z-30 pt-safe">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#D4FF00] rounded-full flex items-center justify-center shrink-0">
+            <span className="text-black text-xs sm:text-sm font-black">✉</span>
           </div>
-          <div>
-            <span className="text-[9px] font-black text-[#D4FF00] uppercase tracking-widest">E-INVITATION</span>
-            <h1 className="text-xs sm:text-sm font-black uppercase tracking-tight text-white/95">
+          <div className="min-w-0">
+            <span className="text-[9px] font-black text-[#D4FF00] uppercase tracking-widest block truncate">E-INVITATION</span>
+            <h1 className="text-xs sm:text-sm font-black uppercase tracking-tight text-white/95 truncate">
               {template.name}
             </h1>
           </div>
         </div>
         <button
           onClick={onBack}
-          className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-bold text-[10px] uppercase tracking-wider transition-all"
+          className="px-3 py-1 sm:px-3.5 sm:py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-bold text-[10px] uppercase tracking-wider transition-all active:scale-95 shrink-0"
         >
-          Close
+          Đóng
         </button>
-      </header>      {/* Main Container */}
-      <div className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-8 flex flex-col items-center gap-8">
+      </header>
+
+      {/* Main Container */}
+      <div className="flex-1 w-full max-w-7xl mx-auto p-3 sm:p-8 flex flex-col items-center gap-6 sm:gap-8">
         
         {/* Card Full-Size Representation View */}
-        <div className="w-full flex flex-col items-center bg-white/5 border border-white/10 rounded-3xl p-4 sm:p-6 shadow-xl relative overflow-visible">
-          <span className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-4">THƯ MỜI CHÍNH THỨC</span>
+        <div className="w-full flex flex-col items-center bg-white/5 border border-white/10 rounded-3xl p-3 sm:p-6 shadow-xl relative overflow-visible">
+          <span className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">THƯ MỜI CHÍNH THỨC</span>
           
-          {/* Scrollable container that scales beautifully and allows scrollbars without squeezing */}
-          <div className="w-full overflow-auto max-w-full flex justify-start sm:justify-center p-2">
-            <div className="relative overflow-visible shadow-2xl border border-white/5 rounded-2xl shrink-0">
+          {/* Responsive container that fits screen and preserves aspect ratio */}
+          <div className="w-full max-w-2xl flex justify-center p-0 sm:p-2">
+            <div className="relative overflow-hidden shadow-2xl border border-white/10 rounded-2xl w-full flex justify-center bg-black/40">
               <canvas
                 ref={canvasRef}
-                className="block"
+                className="block w-full h-auto max-w-full rounded-2xl"
               />
             </div>
           </div>

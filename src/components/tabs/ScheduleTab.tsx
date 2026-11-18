@@ -123,8 +123,70 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
     return map;
   }, {});
 
+  const renderUpcomingMatchCard = (m: Match) => (
+    <div key={m.id} className="bg-white border border-gray-100 p-3.5 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#D4FF00] hover:shadow-md transition-all">
+      <div className="flex-1 min-w-0">
+        {/* Top meta row on mobile */}
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <span className="text-[10px] font-bold font-mono text-gray-400 uppercase tracking-wider">
+            Round {m.round} {m.group_name ? `• ${m.group_name}` : ''}
+          </span>
+          <div className="flex items-center gap-1.5 sm:hidden">
+            {m.court && (
+              <span className="text-[9px] font-bold font-mono bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full uppercase">
+                🏟️ {m.court} - T{m.match_order || 1}
+              </span>
+            )}
+            <span className="text-[9px] font-bold font-mono bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full uppercase">
+              WAITING
+            </span>
+          </div>
+        </div>
+
+        {/* Match teams */}
+        <div className="flex items-center gap-2 sm:gap-3 py-0.5">
+          <span className="font-bold text-sm sm:text-base text-gray-900 truncate flex-1 min-w-0">{m.team1_name || 'TBD'}</span>
+          <span className="text-xs font-black italic opacity-25 px-1 shrink-0">VS</span>
+          <span className="font-bold text-sm sm:text-base text-gray-900 truncate flex-1 min-w-0 text-right sm:text-left">{m.team2_name || 'TBD'}</span>
+        </div>
+
+        {/* Referee badge */}
+        {(m.referee_name || m.referee2_name) && (
+          <div className="text-[10px] font-bold font-mono text-blue-600 mt-1.5 flex items-center gap-1 truncate">
+            <span>👮 Trọng tài:</span>
+            <span className="truncate">{m.referee_name}{m.referee2_name ? ` & ${m.referee2_name}` : ''}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop badges & action button */}
+      <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-50">
+        <div className="hidden sm:flex items-center gap-2">
+          {m.court && (
+            <span className="text-[10px] font-bold font-mono bg-yellow-50 text-yellow-700 px-2.5 py-1 rounded-full uppercase">
+              🏟️ {m.court} - Match {m.match_order || 1}
+            </span>
+          )}
+          <span className="text-xs font-bold font-mono bg-gray-100 px-3 py-1 rounded-full text-gray-500 uppercase">
+            WAITING
+          </span>
+        </div>
+
+        {isAdmin && (
+          <button
+            onClick={() => handleOpenScheduler(m)}
+            className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-xl transition-all ml-auto sm:ml-0"
+            title="Sắp xếp sân & Phân quyền"
+          >
+            <Settings size={18} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       {/* Live Matches Section */}
       {liveMatches.length > 0 && (
         <section>
@@ -135,22 +197,22 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
             </span>
             <h3 className="text-2xl font-black tracking-tighter uppercase">LIVE SCORES</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {liveMatches.map(m => {
               // Calculate Match Point logic
               const matchPointInfo = getMatchPointInfo(m, tournament.scoring_format || '11_win_by_2');
               const { isMatchPoint, team1HasMatchPoint, team2HasMatchPoint } = matchPointInfo;
 
               return (
-                <div key={m.id} className="bg-[#0a0a0a] text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden border-2 border-[#D4FF00]">
+                <div key={m.id} className="bg-[#0a0a0a] text-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl relative overflow-hidden border-2 border-[#D4FF00]">
                   {/* Match Point Pulse Indicator */}
                   {isMatchPoint && (
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-1 bg-red-600 text-white text-[9px] font-black uppercase tracking-widest rounded-full animate-bounce shadow-[0_0_15px_rgba(239,68,68,0.7)] z-10 border border-red-400">
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-red-600 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-widest rounded-full animate-bounce shadow-[0_0_15px_rgba(239,68,68,0.7)] z-10 border border-red-400">
                       🔥 MATCH POINT 🔥
                     </div>
                   )}
 
-                  <div className="absolute top-0 right-0 py-2 px-4 bg-[#D4FF00] text-black font-black text-[10px] uppercase tracking-widest rounded-bl-xl flex items-center gap-2">
+                  <div className="absolute top-0 right-0 py-1.5 px-3 sm:py-2 sm:px-4 bg-[#D4FF00] text-black font-black text-[9px] sm:text-[10px] uppercase tracking-widest rounded-bl-xl flex items-center gap-1.5 sm:gap-2">
                     <span>{m.court ? `${m.court} - Match ${m.match_order || 1}` : (m.group_name || `Round ${m.round}`)}</span>
                     {isAdmin && (
                       <button
@@ -163,38 +225,38 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between gap-8 py-4 mt-2">
-                    <div className="flex-1 text-center">
-                      <div className="text-sm font-bold uppercase text-[#D4FF00] mb-2 flex items-center justify-center gap-1.5 truncate">
-                        {m.team1_name || 'TBD'}
+                  <div className="flex items-center justify-between gap-3 sm:gap-8 py-3 sm:py-4 mt-2">
+                    <div className="flex-1 text-center min-w-0">
+                      <div className="text-xs sm:text-sm font-bold uppercase text-[#D4FF00] mb-1 sm:mb-2 flex items-center justify-center gap-1 truncate px-1">
+                        <span className="truncate">{m.team1_name || 'TBD'}</span>
                         {m.serving_team_id === m.team1_id && (
-                          <span className="inline-flex items-center gap-1 bg-[#D4FF00] text-black text-[9px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse shadow-[0_0_8px_rgba(212,255,0,0.6)]">
-                            🎾 {isDoubles && `Lượt ${m.server_number || 1}`}
+                          <span className="inline-flex items-center gap-0.5 bg-[#D4FF00] text-black text-[8px] sm:text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shrink-0 animate-pulse shadow-[0_0_8px_rgba(212,255,0,0.6)]">
+                            🎾 {isDoubles && `L${m.server_number || 1}`}
                           </span>
                         )}
                       </div>
-                      <div className="text-7xl font-black tracking-tighter tabular-nums">{m.score_team1}</div>
+                      <div className="text-5xl sm:text-7xl font-black tracking-tighter tabular-nums">{m.score_team1}</div>
                     </div>
 
-                    <div className="text-2xl font-black opacity-50 italic">VS</div>
+                    <div className="text-xl sm:text-2xl font-black opacity-40 italic shrink-0">VS</div>
 
-                    <div className="flex-1 text-center">
-                      <div className="text-sm font-bold uppercase text-[#D4FF00] mb-2 flex items-center justify-center gap-1.5 truncate">
-                        {m.team2_name || 'TBD'}
+                    <div className="flex-1 text-center min-w-0">
+                      <div className="text-xs sm:text-sm font-bold uppercase text-[#D4FF00] mb-1 sm:mb-2 flex items-center justify-center gap-1 truncate px-1">
+                        <span className="truncate">{m.team2_name || 'TBD'}</span>
                         {m.serving_team_id === m.team2_id && (
-                          <span className="inline-flex items-center gap-1 bg-[#D4FF00] text-black text-[9px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse shadow-[0_0_8px_rgba(212,255,0,0.6)]">
-                            🎾 {isDoubles && `Lượt ${m.server_number || 1}`}
+                          <span className="inline-flex items-center gap-0.5 bg-[#D4FF00] text-black text-[8px] sm:text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shrink-0 animate-pulse shadow-[0_0_8px_rgba(212,255,0,0.6)]">
+                            🎾 {isDoubles && `L${m.server_number || 1}`}
                           </span>
                         )}
                       </div>
-                      <div className="text-7xl font-black tracking-tighter tabular-nums">{m.score_team2}</div>
+                      <div className="text-5xl sm:text-7xl font-black tracking-tighter tabular-nums">{m.score_team2}</div>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-white/10 flex flex-col items-center gap-1">
-                    <span className="text-[10px] font-bold tracking-widest opacity-60 uppercase">Match in Progress • Round {m.round}</span>
+                  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-white/10 flex flex-col items-center gap-0.5 sm:gap-1">
+                    <span className="text-[9px] sm:text-[10px] font-bold tracking-widest opacity-60 uppercase">Match in Progress • Round {m.round}</span>
                     {(m.referee_name || m.referee2_name) && (
-                      <span className="text-[9px] font-bold tracking-wider text-[#D4FF00]/80 uppercase">
+                      <span className="text-[8px] sm:text-[9px] font-bold tracking-wider text-[#D4FF00]/90 uppercase truncate max-w-full">
                         👮 Referee: {m.referee_name || 'N/A'}{m.referee2_name ? ` & ${m.referee2_name}` : ''}
                       </span>
                     )}
@@ -239,44 +301,11 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
         {/* Grouped rendering */}
         {groupBy === 'none' ? (
           <div className="space-y-3">
-            {sortedUpcoming.map(m => (
-              <div key={m.id} className="bg-white border border-gray-100 p-6 rounded-2xl flex items-center justify-between hover:border-[#D4FF00] transition-all">
-                <div className="flex items-center gap-6 flex-1 min-w-0">
-                  <div className="text-[10px] font-bold font-mono text-gray-400 w-16 uppercase">Round {m.round}</div>
-                  <div className="flex items-center gap-3 truncate">
-                    <span className="font-bold text-lg text-gray-900 truncate">{m.team1_name || 'TBD'}</span>
-                    <span className="text-xs font-black italic opacity-20">VS</span>
-                    <span className="font-bold text-lg text-gray-900 truncate">{m.team2_name || 'TBD'}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  {m.court && (
-                    <span className="text-[10px] font-bold font-mono bg-yellow-50 text-yellow-600 px-2.5 py-1 rounded-full uppercase">
-                      🏟️ {m.court} - Match {m.match_order || 1}
-                    </span>
-                  )}
-                  {(m.referee_name || m.referee2_name) && (
-                    <span className="text-[10px] font-bold font-mono bg-blue-50 text-blue-500 px-2.5 py-1 rounded-full uppercase max-w-[150px] truncate hidden md:inline">
-                      👮 {m.referee_name}{m.referee2_name ? ` & ${m.referee2_name}` : ''}
-                    </span>
-                  )}
-                  {isAdmin && (
-                    <button
-                      onClick={() => handleOpenScheduler(m)}
-                      className="p-2 text-gray-400 hover:text-black hover:bg-gray-50 rounded-xl transition-all"
-                      title="Sắp xếp sân & Phân quyền"
-                    >
-                      <Settings size={18} />
-                    </button>
-                  )}
-                  <span className="text-xs font-bold font-mono bg-gray-50 px-3 py-1 rounded-full text-gray-400 uppercase">WAITING</span>
-                </div>
-              </div>
-            ))}
+            {sortedUpcoming.map(m => renderUpcomingMatchCard(m))}
             {sortedUpcoming.length === 0 && <p className="text-center py-10 text-gray-400 font-medium">No upcoming matches.</p>}
           </div>
         ) : groupBy === 'group' ? (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {Object.keys(sortedUpcoming.reduce((map: { [key: string]: Match[] }, m) => {
               const key = m.group_name || 'Knockout / Giao lưu';
               if (!map[key]) map[key] = [];
@@ -290,47 +319,14 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                     <span className="text-xs font-black uppercase tracking-widest text-gray-900">{groupName}</span>
                     <span className="text-[10px] font-bold text-gray-400">({groupMatches.length} Matches)</span>
                   </div>
-                  {groupMatches.map(m => (
-                    <div key={m.id} className="bg-white border border-gray-100 p-5 rounded-2xl flex items-center justify-between hover:border-[#D4FF00] transition-all">
-                      <div className="flex items-center gap-6 flex-1 min-w-0">
-                        <div className="text-[10px] font-bold font-mono text-gray-400 w-16 uppercase">Round {m.round}</div>
-                        <div className="flex items-center gap-3 truncate">
-                          <span className="font-bold text-lg text-gray-900 truncate">{m.team1_name || 'TBD'}</span>
-                          <span className="text-xs font-black italic opacity-20">VS</span>
-                          <span className="font-bold text-lg text-gray-900 truncate">{m.team2_name || 'TBD'}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        {m.court && (
-                          <span className="text-[10px] font-bold font-mono bg-yellow-50 text-yellow-600 px-2.5 py-1 rounded-full uppercase">
-                            🏟️ {m.court} - Match {m.match_order || 1}
-                          </span>
-                        )}
-                        {(m.referee_name || m.referee2_name) && (
-                          <span className="text-[10px] font-bold font-mono bg-blue-50 text-blue-500 px-2.5 py-1 rounded-full uppercase max-w-[150px] truncate hidden md:inline">
-                            👮 {m.referee_name}{m.referee2_name ? ` & ${m.referee2_name}` : ''}
-                          </span>
-                        )}
-                        {isAdmin && (
-                          <button
-                            onClick={() => handleOpenScheduler(m)}
-                            className="p-2 text-gray-400 hover:text-black hover:bg-gray-50 rounded-xl transition-all"
-                            title="Sắp xếp sân & Phân quyền"
-                          >
-                            <Settings size={18} />
-                          </button>
-                        )}
-                        <span className="text-xs font-bold font-mono bg-gray-50 px-3 py-1 rounded-full text-gray-400 uppercase">WAITING</span>
-                      </div>
-                    </div>
-                  ))}
+                  {groupMatches.map(m => renderUpcomingMatchCard(m))}
                 </div>
               );
             })}
             {sortedUpcoming.length === 0 && <p className="text-center py-10 text-gray-400 font-medium">No upcoming matches.</p>}
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {Object.keys(sortedUpcoming.reduce((map: { [key: string]: Match[] }, m) => {
               const key = m.court || 'Chưa phân sân';
               if (!map[key]) map[key] = [];
@@ -344,38 +340,7 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                     <span className="text-xs font-black uppercase tracking-widest text-gray-900">{courtName}</span>
                     <span className="text-[10px] font-bold text-gray-400">({courtMatches.length} trận)</span>
                   </div>
-                  {courtMatches.map(m => (
-                    <div key={m.id} className="bg-white border border-gray-100 p-5 rounded-2xl flex items-center justify-between hover:border-[#D4FF00] transition-all">
-                      <div className="flex items-center gap-6 flex-1 min-w-0">
-                        <div className="text-[10px] font-bold font-mono text-gray-400 w-16 uppercase">{m.group_name || 'Round ' + m.round}</div>
-                        <div className="flex items-center gap-3 truncate">
-                          <span className="font-bold text-lg text-gray-900 truncate">{m.team1_name || 'TBD'}</span>
-                          <span className="text-xs font-black italic opacity-20">VS</span>
-                          <span className="font-bold text-lg text-gray-900 truncate">{m.team2_name || 'TBD'}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="text-[10px] font-bold font-mono bg-yellow-50 text-yellow-600 px-2.5 py-1 rounded-full uppercase">
-                          Match {m.match_order || 1}
-                        </span>
-                        {(m.referee_name || m.referee2_name) && (
-                          <span className="text-[10px] font-bold font-mono bg-blue-50 text-blue-500 px-2.5 py-1 rounded-full uppercase max-w-[150px] truncate hidden md:inline">
-                            👮 {m.referee_name}{m.referee2_name ? ` & ${m.referee2_name}` : ''}
-                          </span>
-                        )}
-                        {isAdmin && (
-                          <button
-                            onClick={() => handleOpenScheduler(m)}
-                            className="p-2 text-gray-400 hover:text-black hover:bg-gray-50 rounded-xl transition-all"
-                            title="Sắp xếp sân & Phân quyền"
-                          >
-                            <Settings size={18} />
-                          </button>
-                        )}
-                        <span className="text-xs font-bold font-mono bg-gray-50 px-3 py-1 rounded-full text-gray-400 uppercase">WAITING</span>
-                      </div>
-                    </div>
-                  ))}
+                  {courtMatches.map(m => renderUpcomingMatchCard(m))}
                 </div>
               );
             })}

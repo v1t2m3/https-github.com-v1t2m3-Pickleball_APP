@@ -163,45 +163,63 @@ export default function BracketTab({ tournament, matches, isOwner, onReload }: P
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Optional control menu for quick overrides */}
-      {isOwner && (
-        <div className="flex justify-end gap-3 max-w-6xl mx-auto px-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 max-w-6xl mx-auto px-2 sm:px-4">
+        {/* Mobile Round Jump Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mr-1 shrink-0 md:hidden">Vòng:</span>
+          {rounds.map(round => (
+            <button
+              key={round}
+              onClick={() => {
+                const el = document.getElementById(`bracket-round-${round.replace(/\s+/g, '-')}`);
+                el?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+              }}
+              className="px-2.5 py-1 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold text-[10px] rounded-lg transition-all shrink-0 uppercase active:scale-95 shadow-xs"
+            >
+              {round}
+            </button>
+          ))}
+        </div>
+
+        {isOwner && (
           <button
             onClick={() => setBracketBuilderOpen(true)}
-            className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 uppercase"
+            className="self-end sm:self-auto px-3.5 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 uppercase active:scale-95"
           >
-            <Layers size={12} /> THIẾT LẬP LẠI SƠ ĐỒ NHÁNH
+            <Layers size={13} /> THIẾT LẬP LẠI SƠ ĐỒ NHÁNH
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
-      <div className="overflow-x-auto overflow-y-hidden pb-8">
-        <div className="flex gap-12 min-w-max p-4 justify-center">
+      <div className="overflow-x-auto overflow-y-hidden pb-8 no-scrollbar scroll-smooth">
+        <div className="flex gap-6 sm:gap-12 min-w-max p-2 sm:p-4 justify-start md:justify-center">
           {rounds.map((round) => (
-            <div key={round} className="w-72 space-y-8">
-              <div className="text-center flex flex-col items-center gap-2">
+            <div key={round} id={`bracket-round-${round.replace(/\s+/g, '-')}`} className="w-[260px] sm:w-72 space-y-6 sm:space-y-8 scroll-ml-4">
+              <div className="text-center flex flex-col items-center gap-1.5">
                 <span className="text-[10px] font-black tracking-[.2em] uppercase text-black bg-[#D4FF00] px-4 py-1.5 rounded-full border border-black/10 shadow-sm">
                   {round}
                 </span>
                 {round.toLowerCase().includes('final') && !round.toLowerCase().includes('semifinal') && !round.toLowerCase().includes('quarterfinal') && (
                   <div className="flex flex-col items-center mt-1 animate-bounce">
-                    <Trophy className="text-[#FFD700] drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]" size={30} fill="#b0b906ff" />
-                    <span className="text-[10px] font-extrabold text-[#FFD700] uppercase tracking-wider mt-0.5">CHAMPIONSHIP</span>
+                    <Trophy className="text-[#FFD700] drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]" size={26} fill="#b0b906ff" />
+                    <span className="text-[9px] font-extrabold text-[#b0b906ff] uppercase tracking-wider mt-0.5">CHAMPIONSHIP</span>
                   </div>
                 )}
                 {round.toLowerCase().includes('third') && (
                   <div className="flex flex-col items-center mt-1 animate-pulse">
-                    <Medal className="text-[#CD7F32] drop-shadow-[0_0_8px_rgba(205,127,50,0.4)]" size={30} fill="#ca7219ff" />
-                    <span className="text-[10px] font-extrabold text-[#CD7F32] uppercase tracking-wider mt-0.5">3RD PLACE</span>
+                    <Medal className="text-[#CD7F32] drop-shadow-[0_0_8px_rgba(205,127,50,0.4)]" size={26} fill="#ca7219ff" />
+                    <span className="text-[9px] font-extrabold text-[#ca7219ff] uppercase tracking-wider mt-0.5">3RD PLACE</span>
                   </div>
                 )}
               </div>
 
-              <div className="space-y-6 flex flex-col justify-around h-full py-12">
+              <div className="space-y-5 flex flex-col justify-around h-full py-6 sm:py-12">
                 {knockoutMatches.filter(m => m.round === round).map((m) => {
                   const p1Won = m.status === 'completed' && m.score_team1 > m.score_team2;
                   const p2Won = m.status === 'completed' && m.score_team2 > m.score_team1;
+                  const hasScores = m.status === 'completed' || m.status === 'live';
 
                   return (
                     <div key={m.id} className="relative">
@@ -237,16 +255,26 @@ export default function BracketTab({ tournament, matches, isOwner, onReload }: P
                         )}
 
                         <div className={cn(
-                          "flex items-center justify-between p-4 border-b border-gray-50",
+                          "flex items-center justify-between p-3 sm:p-4 border-b border-gray-100",
                           p1Won ? "bg-black text-[#D4FF00]" : "text-gray-900"
                         )}>
-                          <span className="font-bold text-sm truncate">{m.team1_name || 'TBD'}</span>
+                          <span className="font-bold text-xs sm:text-sm truncate flex-1">{m.team1_name || 'TBD'}</span>
+                          {hasScores && (
+                            <span className={cn("font-black text-xs sm:text-sm tabular-nums ml-2", p1Won ? "text-[#D4FF00]" : "text-gray-500")}>
+                              {m.score_team1}
+                            </span>
+                          )}
                         </div>
                         <div className={cn(
-                          "flex items-center justify-between p-4",
+                          "flex items-center justify-between p-3 sm:p-4",
                           p2Won ? "bg-black text-[#D4FF00]" : "text-gray-900"
                         )}>
-                          <span className="font-bold text-sm truncate">{m.team2_name || 'TBD'}</span>
+                          <span className="font-bold text-xs sm:text-sm truncate flex-1">{m.team2_name || 'TBD'}</span>
+                          {hasScores && (
+                            <span className={cn("font-black text-xs sm:text-sm tabular-nums ml-2", p2Won ? "text-[#D4FF00]" : "text-gray-500")}>
+                              {m.score_team2}
+                            </span>
+                          )}
                         </div>
 
                         {/* Referee Indicator */}
@@ -257,7 +285,7 @@ export default function BracketTab({ tournament, matches, isOwner, onReload }: P
                         )}
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
