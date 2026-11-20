@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, RotateCcw, Shield, CheckCircle, Trophy, Volume2, Layers, Lock } from 'lucide-react';
+import { Play, RotateCcw, Shield, CheckCircle, Trophy, Volume2, Layers, Lock, Shuffle } from 'lucide-react';
 import { Tournament, Match } from '../../types';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -149,10 +149,10 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
       {tournament.format === 'social' && isAdmin && (
         <div className="bg-white p-4 sm:p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4 sm:space-y-6">
           <div className="flex items-center gap-3">
-            <Trophy className="text-purple-600 bg-purple-100 p-2 rounded-2xl shrink-0" size={38} />
+            <Trophy className="text-gray-800 bg-gray-100 p-2 rounded-xl shrink-0" size={38} />
             <div>
-              <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-gray-900">SOCIAL MATCHMAKER & RANDOM SEED 🎲</h3>
-              <p className="text-xs text-gray-400 font-medium">Bốc thăm ngẫu nhiên hoặc ghép cặp để bắt đầu trận đấu giao lưu ngay.</p>
+              <h3 className="text-base sm:text-lg font-bold tracking-tight text-gray-900">Ghép cặp & Bốc thăm giao lưu</h3>
+              <p className="text-xs text-gray-500">Bốc thăm ngẫu nhiên hoặc ghép cặp để bắt đầu trận đấu giao lưu ngay.</p>
             </div>
           </div>
 
@@ -203,17 +203,17 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
             <div className="flex gap-2">
               <button
                 onClick={handleRandomMatch}
-                className="flex-1 py-2.5 sm:py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all shadow-md shadow-indigo-500/10"
+                className="flex-1 py-2.5 sm:py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 active:scale-[0.98] transition-colors cursor-pointer"
               >
-                🎲 RANDOM
+                <Shuffle size={14} /> Ngẫu nhiên
               </button>
 
               <button
                 onClick={handleCreateSocialMatch}
                 disabled={loading}
-                className="flex-[1.5] py-2.5 sm:py-3 bg-black hover:bg-gray-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all"
+                className="flex-[1.5] py-2.5 sm:py-3 bg-black hover:bg-gray-800 text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 active:scale-[0.98] transition-colors cursor-pointer"
               >
-                🚀 LIVE MATCH
+                <Play size={14} /> Bắt đầu trận
               </button>
             </div>
           </div>
@@ -384,7 +384,7 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
                   <div key={m.id} className={cn(
                     "rounded-3xl p-4 sm:p-6 md:p-8 border-2 shadow-sm transition-all relative overflow-hidden",
                     m.status === 'live'
-                      ? "bg-[#0c0d0f] border-[#D4FF00] shadow-[0_0_25px_rgba(212,255,0,0.08)]"
+                      ? "bg-[#0c0d0f] border-[#D4FF00]"
                       : "bg-white border-gray-200"
                   )}>
                     {/* Sân & Thứ tự label */}
@@ -410,7 +410,7 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
                             )}
                             <span className="text-sm sm:text-base md:text-lg font-bold uppercase truncate">{m.team1_name || 'TBD'}</span>
                             {team1HasMatchPoint && (
-                              <span className="px-2 py-0.5 bg-red-600 text-white font-black text-[8px] sm:text-[9px] tracking-widest rounded-full animate-pulse shrink-0">
+                              <span className="px-2 py-0.5 bg-red-600 text-white font-bold text-[9px] tracking-wider rounded-full shrink-0">
                                 MATCH POINT
                               </span>
                             )}
@@ -438,7 +438,7 @@ export default function RefereeTab({ tournament, matches, onReload }: Props) {
                             )}
                             <span className="text-sm sm:text-base md:text-lg font-bold uppercase truncate">{m.team2_name || 'TBD'}</span>
                             {team2HasMatchPoint && (
-                              <span className="px-2 py-0.5 bg-red-600 text-white font-black text-[8px] sm:text-[9px] tracking-widest rounded-full animate-pulse shrink-0">
+                              <span className="px-2 py-0.5 bg-red-600 text-white font-bold text-[9px] tracking-wider rounded-full shrink-0">
                                 MATCH POINT
                               </span>
                             )}

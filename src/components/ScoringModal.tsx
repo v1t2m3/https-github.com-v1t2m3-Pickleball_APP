@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, RotateCcw, Shield, CheckCircle, Undo2, Settings, Trophy, HelpCircle } from 'lucide-react';
+import { X, RotateCcw, Shield, CheckCircle, Undo2, Settings, Trophy, HelpCircle, Lock } from 'lucide-react';
 import { Tournament, Match } from '../types';
 import { api } from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Props {
   tournament: Tournament;
@@ -18,11 +19,15 @@ interface MatchState {
 }
 
 export default function ScoringModal({ tournament, match, onClose, onUpdate }: Props) {
+  const { user, isAdmin } = useAuth();
+  const isAssigned = isAdmin || match.referee_id === user?.id || match.referee2_id === user?.id;
+
   // Parsing target score and rules
   const activeFormat = match.scoring_format || tournament.scoring_format || '11_win_by_2';
   const targetScore = activeFormat.includes('15') ? 15 : activeFormat.includes('21') ? 21 : activeFormat.includes('25') ? 25 : 11;
   const winBy2 = activeFormat.includes('win_by_2');
   const isDoubles = tournament.match_type?.toLowerCase()?.includes('doubles') ?? true;
+  const isFinals = (match.round || '').toLowerCase().includes('final') || (match.round || '').toLowerCase().includes('chung kết');
 
   // Local Match States for Optimistic UI updates
   const [score1, setScore1] = useState(match.score_team1);
@@ -35,6 +40,15 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
   const [manualMode, setManualMode] = useState(false);
   const [history, setHistory] = useState<MatchState[]>([]);
   const [saving, setSaving] = useState(false);
+
+  // Modern Web Guidance: Dismiss modal dialog on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   // Capture current state to history stack before making changes
   const saveToHistory = () => {
@@ -192,19 +206,25 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
   const team2HasMatchPoint = isMatchPoint(2);
 
   return (
-    <div className="fixed inset-0 bg-[#070708] text-white z-50 flex flex-col font-sans select-none overflow-hidden">
+    <div 
+      className="fixed inset-0 bg-[#070708] text-white z-50 flex flex-col font-sans select-none overflow-hidden modal-contain-scroll"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="scoring-match-title"
+    >
       {/* Header */}
       <header className="px-3 sm:px-6 py-2.5 sm:py-3.5 bg-white/5 border-b border-white/10 flex items-center justify-between sticky top-0 z-10 pt-safe">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             onClick={onClose}
             className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-colors active:scale-95 shrink-0"
+            aria-label="Đóng bảng ghi điểm"
           >
             <X size={22} />
           </button>
           <div className="min-w-0">
             <span className="text-[9px] sm:text-[10px] font-bold text-[#D4FF00] uppercase tracking-wider block truncate">{tournament.name}</span>
-            <h1 className="text-xs sm:text-sm font-bold uppercase tracking-tight text-white/90 truncate">{match.round} • {isDoubles ? 'Doubles' : 'Singles'}</h1>
+            <h1 id="scoring-match-title" className="text-xs sm:text-sm font-bold uppercase tracking-tight text-white/90 truncate">{match.round} • {isDoubles ? 'Doubles' : 'Singles'}</h1>
           </div>
         </div>
 
@@ -233,7 +253,7 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
 
         {/* Setup Serving State Banner if uninitialized */}
         {!servingTeamId && status === 'live' && (
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-4 sm:p-6 text-center max-w-md mx-auto w-full animate-pulse">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 text-center max-w-md mx-auto w-full">
             <Trophy className="mx-auto text-[#D4FF00] mb-2 sm:mb-3" size={28} />
             <h3 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">CHỌN ĐỘI PHÁT BÓNG TRƯỚC</h3>
             <p className="text-[11px] sm:text-xs text-white/50 mb-4 sm:mb-6">Trọng tài hãy chọn đội và lượt phát bóng để bắt đầu chế độ tự động tính điểm.</p>
@@ -260,13 +280,15 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
 
             {/* Team 1 Score Card */}
             <div className={`relative rounded-2xl p-3 sm:p-6 md:p-8 border-2 transition-all flex flex-col justify-between items-center ${servingTeamId === match.team1_id
-                ? 'bg-white/[0.04] border-[#D4FF00] shadow-[0_0_30px_rgba(212,255,0,0.1)]'
+                ? 'bg-white/[0.04] border-[#D4FF00]'
                 : 'bg-white/[0.01] border-white/5 opacity-70'
               }`}>
               {/* Match Point Alert */}
               {team1HasMatchPoint && (
-                <div className="absolute -top-3 px-2 sm:px-4 py-0.5 sm:py-1 bg-red-600 text-white font-black text-[7px] sm:text-[10px] tracking-widest rounded-full animate-bounce">
-                  MATCH POINT
+                <div className={`absolute -top-3 px-2.5 sm:px-4 py-0.5 sm:py-1 font-bold text-[8px] sm:text-[10px] tracking-wider rounded-full ${
+                  isFinals ? 'bg-amber-400 text-black' : 'bg-red-600 text-white'
+                }`}>
+                  {isFinals ? 'CHAMPIONSHIP POINT' : 'MATCH POINT'}
                 </div>
               )}
 
@@ -279,9 +301,8 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
               <div className="flex items-center gap-1 sm:gap-2 my-1 sm:my-3">
                 {servingTeamId === match.team1_id && (
                   <div className="flex items-center gap-1 bg-[#D4FF00]/15 border border-[#D4FF00]/40 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[#D4FF00] text-[8px] sm:text-xs font-black uppercase relative">
-                    <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#D4FF00] inline-block animate-ping"></span>
-                    <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#D4FF00] inline-block absolute"></span>
-                    <span className="ml-1 sm:ml-1.5">SERVICE {isDoubles ? serverNumber : ''}</span>
+                    <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#D4FF00] inline-block"></span>
+                    <span className="ml-1">SERVICE {isDoubles ? serverNumber : ''}</span>
                   </div>
                 )}
               </div>
@@ -312,13 +333,15 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
 
             {/* Team 2 Score Card */}
             <div className={`relative rounded-2xl p-3 sm:p-6 md:p-8 border-2 transition-all flex flex-col justify-between items-center ${servingTeamId === match.team2_id
-                ? 'bg-white/[0.04] border-[#D4FF00] shadow-[0_0_30px_rgba(212,255,0,0.1)]'
+                ? 'bg-white/[0.04] border-[#D4FF00]'
                 : 'bg-white/[0.01] border-white/5 opacity-80'
               }`}>
               {/* Match Point Alert */}
               {team2HasMatchPoint && (
-                <div className="absolute -top-3 px-2 sm:px-4 py-0.5 sm:py-1 bg-red-600 text-white font-black text-[7px] sm:text-[10px] tracking-widest rounded-full animate-bounce">
-                  MATCH POINT
+                <div className={`absolute -top-3 px-2.5 sm:px-4 py-0.5 sm:py-1 font-bold text-[8px] sm:text-[10px] tracking-wider rounded-full ${
+                  isFinals ? 'bg-amber-400 text-black' : 'bg-red-600 text-white'
+                }`}>
+                  {isFinals ? 'CHAMPIONSHIP POINT' : 'MATCH POINT'}
                 </div>
               )}
 
@@ -331,9 +354,8 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
               <div className="flex items-center gap-1 sm:gap-2 my-1 sm:my-3">
                 {servingTeamId === match.team2_id && (
                   <div className="flex items-center gap-1 bg-[#D4FF00]/15 border border-[#D4FF00]/40 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[#D4FF00] text-[8px] sm:text-xs font-black uppercase relative">
-                    <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#D4FF00] inline-block animate-ping"></span>
-                    <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#D4FF00] inline-block absolute"></span>
-                    <span className="ml-1 sm:ml-1.5">SERVICE {isDoubles ? serverNumber : ''}</span>
+                    <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#D4FF00] inline-block"></span>
+                    <span className="ml-1">SERVICE {isDoubles ? serverNumber : ''}</span>
                   </div>
                 )}
               </div>
@@ -362,12 +384,30 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
               )}
             </div>
 
+            {/* Official Pickleball Referee Callout Display Box */}
+            {servingTeamId && (
+              <div className="col-span-2 bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-4 text-center max-w-md mx-auto w-full my-1 sm:my-2 shadow-inner">
+                <span className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-0.5">
+                  TIẾNG HÔ ĐIỂM TRỌNG TÀI
+                </span>
+                <div className="text-2xl sm:text-4xl font-black text-[#D4FF00] tracking-wider py-0.5 sm:py-1">
+                  {servingTeamId === match.team1_id
+                    ? `${score1} - ${score2}${isDoubles ? ` - ${serverNumber}` : ''}`
+                    : `${score2} - ${score1}${isDoubles ? ` - ${serverNumber}` : ''}`}
+                </div>
+                <span className="text-[10px] sm:text-xs text-white/70 font-mono">
+                  Vị trí phát bóng: <strong className="text-[#D4FF00]">
+                    {((servingTeamId === match.team1_id ? score1 : score2) % 2 === 0) ? 'Ô Bên Phải (Điểm chẵn)' : 'Ô Bên Trái (Điểm lẻ)'}
+                  </strong>
+                </span>
+              </div>
+            )}
           </div>
         )}
       </main>
 
       {/* Manual Mode Extra Overrides */}
-      {manualMode && servingTeamId && (
+      {manualMode && servingTeamId && isAssigned && (
         <div className="px-3 sm:px-6 py-2.5 sm:py-3 bg-white/[0.02] border-t border-white/5 flex flex-wrap gap-2 sm:gap-4 items-center justify-center text-xs">
           <div className="flex items-center gap-1.5 sm:gap-2 bg-white/5 px-3 py-1.5 rounded-xl">
             <span className="font-bold text-[10px] sm:text-xs opacity-60">GIAO BÓNG:</span>
@@ -407,53 +447,61 @@ export default function ScoringModal({ tournament, match, onClose, onUpdate }: P
 
       {/* Main Action Controllers Bottom Bar */}
       <footer className="p-3 sm:p-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] bg-white/5 border-t border-white/10 flex flex-col gap-2 sm:gap-3 sticky bottom-0">
-
-        {/* Core Scoring Actions Row (Side-by-side) */}
-        {status === 'live' && servingTeamId && !manualMode && (
-          <div className="flex gap-2 sm:gap-3 w-full">
-            {/* Rally Won Button */}
-            <button
-              onClick={handleServingTeamWins}
-              className="flex-[2] py-3.5 sm:py-4 bg-[#D4FF00] hover:bg-[#bce600] text-black font-black text-xs sm:text-sm md:text-base rounded-xl active:scale-95 transition-all flex items-center justify-center gap-1 shadow-lg shadow-[#D4FF00]/15"
-            >
-              <span>+1 ĐIỂM (GIAO THẮNG)</span>
-            </button>
-
-            {/* Fault Sideout Button */}
-            <button
-              onClick={handleFault}
-              className="flex-1 py-3.5 sm:py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-xs sm:text-sm md:text-base rounded-xl active:scale-95 transition-all flex items-center justify-center gap-1"
-            >
-              <span>LỖI / ĐỔI BÊN</span>
-            </button>
+        {!isAssigned ? (
+          <div className="w-full py-3.5 sm:py-4 bg-red-950/60 border border-red-500/40 text-red-200 text-xs sm:text-sm font-bold text-center rounded-xl flex items-center justify-center gap-2">
+            <Lock size={16} />
+            <span>Chế độ chỉ xem: Bạn không được phân công làm trọng tài cho trận này ({match.referee_name || 'N/A'}).</span>
           </div>
+        ) : (
+          <>
+            {/* Core Scoring Actions Row (Side-by-side) */}
+            {status === 'live' && servingTeamId && !manualMode && (
+              <div className="flex gap-2 sm:gap-3 w-full">
+                {/* Rally Won Button */}
+                <button
+                  onClick={handleServingTeamWins}
+                  className="flex-[2] py-3.5 sm:py-4 bg-[#D4FF00] hover:bg-[#bce600] text-black font-black text-xs sm:text-sm md:text-base rounded-xl active:scale-95 transition-all flex items-center justify-center gap-1 shadow-lg shadow-[#D4FF00]/15 cursor-pointer"
+                >
+                  <span>+1 ĐIỂM (GIAO THẮNG)</span>
+                </button>
+
+                {/* Fault Sideout Button */}
+                <button
+                  onClick={handleFault}
+                  className="flex-1 py-3.5 sm:py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-xs sm:text-sm md:text-base rounded-xl active:scale-95 transition-all flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <span>LỖI / ĐỔI BÊN</span>
+                </button>
+              </div>
+            )}
+
+            {status === 'upcoming' && (
+              <div className="w-full py-3 sm:py-4 text-center text-white/50 text-xs sm:text-sm font-bold bg-white/5 border border-white/10 rounded-xl">
+                TRẬN ĐẤU CHƯA BẮT ĐẦU
+              </div>
+            )}
+
+            {/* Secondary Actions Row (Side-by-side) */}
+            <div className="flex gap-2 sm:gap-3 w-full justify-between items-center">
+              <button
+                onClick={handleUndo}
+                disabled={history.length === 0}
+                className="flex-1 py-2 sm:py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 text-white/80 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform cursor-pointer disabled:cursor-not-allowed"
+              >
+                <Undo2 size={14} /> HOÀN TÁC
+              </button>
+
+              {status === 'live' && (
+                <button
+                  onClick={handleSubmitResult}
+                  className="flex-1 py-2 sm:py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md cursor-pointer"
+                >
+                  <CheckCircle size={14} /> KẾT THÚC
+                </button>
+              )}
+            </div>
+          </>
         )}
-
-        {status === 'upcoming' && (
-          <div className="w-full py-3 sm:py-4 text-center text-white/50 text-xs sm:text-sm font-bold bg-white/5 border border-white/10 rounded-xl">
-            TRẬN ĐẤU CHƯA BẮT ĐẦU
-          </div>
-        )}
-
-        {/* Secondary Actions Row (Side-by-side) */}
-        <div className="flex gap-2 sm:gap-3 w-full justify-between items-center">
-          <button
-            onClick={handleUndo}
-            disabled={history.length === 0}
-            className="flex-1 py-2 sm:py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 text-white/80 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
-          >
-            <Undo2 size={14} /> HOÀN TÁC
-          </button>
-
-          {status === 'live' && (
-            <button
-              onClick={handleSubmitResult}
-              className="flex-1 py-2 sm:py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md"
-            >
-              <CheckCircle size={14} /> KẾT THÚC
-            </button>
-          )}
-        </div>
       </footer>
     </div>
   );

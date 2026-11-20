@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Users, Calendar, Trophy, Settings, ChevronRight, Activity, ListChecks } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, Trophy, Settings, ChevronRight, Activity, ListChecks, Trash2, Tv } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Tournament, Participant, Match } from '../types';
 
@@ -8,10 +8,13 @@ import BracketTab from './tabs/BracketTab';
 import RefereeTab from './tabs/RefereeTab';
 import TeamsTab from './tabs/TeamsTab';
 import GroupsTab from './tabs/GroupsTab';
+import LiveCourtsBoardModal from './LiveCourtsBoardModal';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import { getSocket } from '../lib/socket';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -27,7 +30,9 @@ type Tab = 'teams' | 'groups' | 'schedule' | 'bracket' | 'referee';
 export default function TournamentView({ tournament, onBack }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('teams');
   const [matches, setMatches] = useState<Match[]>([]);
+  const [liveBoardOpen, setLiveBoardOpen] = useState(false);
   const { isAdmin, isReferee, hasPermission } = useAuth();
+  const toast = useToast();
 
   const canScore = isAdmin || isReferee || hasPermission('matches:score');
   const canManageTeams = isAdmin || hasPermission('teams:manage');
@@ -44,11 +49,50 @@ export default function TournamentView({ tournament, onBack }: Props) {
     }
   };
 
+  const handleDeleteThisTournament = async () => {
+    if (!confirm(`Bạn có chắc chắn muốn xóa giải đấu "${tournament.name}" không?\n\nToàn bộ dữ liệu trận đấu, bảng đấu, đội thi đấu sẽ bị xóa vĩnh viễn.`)) {
+      return;
+    }
+    try {
+      await api(`/tournaments/${tournament.id}`, { method: 'DELETE' });
+      toast.success(`Đã xóa giải đấu "${tournament.name}" thành công!`);
+      onBack();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(`Lỗi khi xóa giải đấu: ${e.message || "Không thể xóa giải đấu"}`);
+    }
+  };
+
   useEffect(() => {
     loadData();
-    // Poll for updates every 5 seconds as a simple real-time alternative
-    const intervalId = setInterval(loadData, 5000);
-    return () => clearInterval(intervalId);
+
+    // Listen to real-time WebSocket events from Socket.io
+    const socket = getSocket();
+    const handleMatchUpdate = (updatedMatch: any) => {
+      if (updatedMatch && (!updatedMatch.tournament_id || updatedMatch.tournament_id === parseInt(tournament.id))) {
+        setMatches(prev => {
+          const index = prev.findIndex(m => m.id === updatedMatch.id);
+          if (index >= 0) {
+            const next = [...prev];
+            next[index] = { ...next[index], ...updatedMatch };
+            return next;
+          }
+          return [...prev, updatedMatch];
+        });
+      }
+    };
+
+    socket.on('score_updated', handleMatchUpdate);
+    socket.on('match_updated', handleMatchUpdate);
+
+    // Low-frequency fallback poll (30s) instead of aggressive 5s polling
+    const fallbackInterval = setInterval(loadData, 30000);
+
+    return () => {
+      socket.off('score_updated', handleMatchUpdate);
+      socket.off('match_updated', handleMatchUpdate);
+      clearInterval(fallbackInterval);
+    };
   }, [tournament.id]);
 
   const isSocial = tournament.format === 'social';
@@ -91,6 +135,27 @@ export default function TournamentView({ tournament, onBack }: Props) {
                 {tournament.name}
               </h1>
             </div>
+            {(isAdmin || hasPermission('tournaments:delete')) && (
+              <button
+                onClick={handleDeleteThisTournament}
+                className="p-2 sm:px-3 sm:py-1.5 text-red-500 hover:text-white hover:bg-red-500 rounded-xl transition-all border border-red-200 shrink-0 flex items-center gap-1.5 text-xs font-bold active:scale-95"
+                title="Xóa giải đấu này"
+              >
+                <Trash2 size={16} />
+                <span className="hidden sm:inline">Xóa giải</span>
+              </button>
+            )}
+
+            {matches.length > 0 && (
+              <button
+                onClick={() => setLiveBoardOpen(true)}
+                className="px-3 py-1.5 bg-[#D4FF00] hover:bg-[#bce600] text-black font-black rounded-xl text-xs uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-sm transition-all active:scale-95 cursor-pointer"
+                title="Bật bảng điểm trực tiếp các sân"
+              >
+                <Tv size={15} />
+                <span className="hidden sm:inline">Bảng Điểm Trực Tiếp</span>
+              </button>
+            )}
           </div>
 
           <div className="flex bg-gray-100 p-1 rounded-xl overflow-x-auto no-scrollbar gap-1">
@@ -162,6 +227,41 @@ export default function TournamentView({ tournament, onBack }: Props) {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Mobile Fixed Bottom Navigation Bar */}
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/10 px-2 py-2 pb-safe flex items-center justify-around shadow-2xl">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all select-none relative",
+                isActive ? "text-[#D4FF00]" : "text-white/40 hover:text-white/70"
+              )}
+            >
+              <tab.icon size={18} strokeWidth={isActive ? 2.5 : 1.8} />
+              <span className="text-[10px] font-bold tracking-tight">{tab.shortLabel}</span>
+              {isActive && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#D4FF00] absolute -bottom-1" />
+              )}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Multi-Court Live Scoreboard Dashboard Modal */}
+      {liveBoardOpen && (
+        <LiveCourtsBoardModal
+          tournament={tournament}
+          matches={matches}
+          onClose={() => setLiveBoardOpen(false)}
+          onMatchUpdated={(updated) => {
+            setMatches(prev => prev.map(m => m.id === updated.id ? updated : m));
+          }}
+        />
+      )}
     </div>
   );
 }

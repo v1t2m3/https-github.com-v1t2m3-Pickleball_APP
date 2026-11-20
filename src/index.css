@@ -46,3 +46,29 @@
 .pr-safe {
   padding-right: env(safe-area-inset-right, 0px);
 }
+
+/* Modern Web Guidance: Modal Dialog & Backdrop Scroll Containment */
+dialog:modal,
+.modal-contain-scroll {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop,
+.backdrop-contain-scroll {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+/* Modern Web Guidance: Responsive Table Scroll Region & Performance */
+.table-scroll-region {
+  overflow-x: auto;
+  max-inline-size: 100%;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Modern Web Guidance: Defer rendering heavy content below the fold */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 240px;
+}

@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Tournament } from '../../types';
 import { api } from '../../lib/api';
-import { Plus, Trash2, ListChecks } from 'lucide-react';
+import { Plus, Trash2, ListChecks, Calendar, RefreshCw } from 'lucide-react';
+import { getSocket } from '../../lib/socket';
+import { useToast } from '../../contexts/ToastContext';
 
 export default function GroupsTab({ tournament, isOwner }: { tournament: Tournament; isOwner: boolean }) {
+  const { showToast } = useToast();
   const [groups, setGroups] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [standings, setStandings] = useState<Record<number, any[]>>({});
   
   const [newGroupName, setNewGroupName] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('');
+  const [generating, setGenerating] = useState(false);
 
   const loadData = async () => {
     try {
@@ -27,13 +31,20 @@ export default function GroupsTab({ tournament, isOwner }: { tournament: Tournam
   useEffect(() => {
     loadData();
 
-    // Thiết lập Polling ngầm tự động cập nhật bảng xếp hạng mỗi 10 giây
-    const interval = setInterval(() => {
+    // Listen to real-time events
+    const socket = getSocket();
+    const handleUpdate = () => {
       loadData();
-    }, 10000);
+    };
 
-    return () => clearInterval(interval);
-  }, []);
+    socket.on('schedule_updated', handleUpdate);
+    socket.on('match_updated', handleUpdate);
+
+    return () => {
+      socket.off('schedule_updated', handleUpdate);
+      socket.off('match_updated', handleUpdate);
+    };
+  }, [tournament.id]);
 
   const handleCreateGroup = async () => {
     if (!newGroupName) return;
@@ -43,18 +54,23 @@ export default function GroupsTab({ tournament, isOwner }: { tournament: Tournam
         body: JSON.stringify({ name: newGroupName })
       });
       setNewGroupName('');
+      showToast('Đã tạo bảng đấu mới thành công', 'success');
       loadData();
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      showToast(e.message || 'Lỗi khi tạo bảng đấu', 'error');
     }
   };
 
   const handleDeleteGroup = async (groupId: number) => {
+    if (!confirm('CẢNH BÁO: Xóa bảng đấu này sẽ đồng thời xóa tất cả các trận đấu thuộc bảng trong Lịch thi đấu (Schedule) và đặt lại nhánh đấu Knockout (Bracket). Bạn có chắc chắn muốn xóa?')) {
+      return;
+    }
     try {
       await api(`/tournaments/${tournament.id}/groups/${groupId}`, { method: 'DELETE' });
+      showToast('Đã xóa bảng đấu và đồng bộ lại lịch thi đấu', 'info');
       loadData();
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      showToast(e.message || 'Lỗi khi xóa bảng đấu', 'error');
     }
   };
 
@@ -66,18 +82,43 @@ export default function GroupsTab({ tournament, isOwner }: { tournament: Tournam
         body: JSON.stringify({ team_id: parseInt(selectedTeam) })
       });
       setSelectedTeam('');
+      showToast('Đã gán đội vào bảng thành công', 'success');
       loadData();
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      showToast(e.message || 'Lỗi khi gán đội vào bảng', 'error');
     }
   };
 
   const handleRemoveTeam = async (groupId: number, teamId: number) => {
+    if (!confirm('Xóa đội này khỏi bảng sẽ xóa các trận đấu liên quan của đội trong bảng và đặt lại nhánh đấu Knockout. Bạn có chắc chắn?')) {
+      return;
+    }
     try {
       await api(`/tournaments/${tournament.id}/groups/${groupId}/teams/${teamId}`, { method: 'DELETE' });
+      showToast('Đã xóa đội khỏi bảng đấu', 'info');
       loadData();
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      showToast(e.message || 'Lỗi khi xóa đội', 'error');
+    }
+  };
+
+  const handleGenerateSchedule = async () => {
+    if (groups.length === 0) {
+      showToast('Chưa có bảng đấu nào để sinh lịch thi đấu.', 'info');
+      return;
+    }
+    if (!confirm('Hệ thống sẽ sinh lịch thi đấu vòng tròn (Round-Robin) cho các đội trong từng bảng. Lịch thi đấu cũ sẽ được làm mới. Bạn có muốn tiếp tục?')) {
+      return;
+    }
+    setGenerating(true);
+    try {
+      await api(`/tournaments/${tournament.id}/generate`, { method: 'POST' });
+      showToast('Đã sinh lịch thi đấu vòng bảng thành công!', 'success');
+      loadData();
+    } catch (e: any) {
+      showToast(e.message || 'Lỗi khi sinh lịch thi đấu', 'error');
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -94,23 +135,36 @@ export default function GroupsTab({ tournament, isOwner }: { tournament: Tournam
   return (
     <div className="space-y-6 sm:space-y-8">
       {isOwner && (
-        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
-          <div className="flex-1">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1.5">Create New Group</label>
-            <input 
-              type="text" 
-              placeholder="e.g. Group A" 
-              value={newGroupName}
-              onChange={e => setNewGroupName(e.target.value)}
-              className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 sm:py-3 text-sm focus:ring-2 focus:ring-[#D4FF00] outline-none font-bold"
-            />
+        <div className="flex flex-col md:flex-row gap-3 md:items-end justify-between bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex-1 flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
+            <div className="flex-1">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1.5">Tạo Bảng Đấu Mới</label>
+              <input 
+                type="text" 
+                placeholder="VD: Bảng A, Bảng B..." 
+                value={newGroupName}
+                onChange={e => setNewGroupName(e.target.value)}
+                className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 sm:py-3 text-sm focus:ring-2 focus:ring-[#D4FF00] outline-none font-bold"
+              />
+            </div>
+            <button 
+              onClick={handleCreateGroup}
+              className="w-full sm:w-auto bg-[#0a0a0a] text-white font-bold px-6 py-2.5 sm:py-3 rounded-xl hover:bg-[#1a1a1a] active:scale-95 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wide shrink-0"
+            >
+              <Plus size={16} /> THÊM BẢNG
+            </button>
           </div>
-          <button 
-            onClick={handleCreateGroup}
-            className="w-full sm:w-auto bg-[#0a0a0a] text-white font-bold px-6 py-2.5 sm:py-3 rounded-xl hover:bg-[#1a1a1a] active:scale-95 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wide shrink-0"
-          >
-            <Plus size={16} /> ADD GROUP
-          </button>
+
+          {groups.length > 0 && (
+            <button
+              onClick={handleGenerateSchedule}
+              disabled={generating}
+              className="w-full md:w-auto bg-[#D4FF00] hover:bg-[#bce600] text-black font-black px-6 py-2.5 sm:py-3 rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wide shrink-0 shadow-sm disabled:opacity-50"
+              title="Tự động tạo các cặp đấu vòng tròn theo từng bảng đã tạo"
+            >
+              <Calendar size={16} /> {generating ? 'ĐANG KHỞI TẠO...' : 'SINH LỊCH VÒNG BẢNG'}
+            </button>
+          )}
         </div>
       )}
 
@@ -130,7 +184,12 @@ export default function GroupsTab({ tournament, isOwner }: { tournament: Tournam
             
             <div className="p-3 sm:p-4">
               {/* Standings Table */}
-              <div className="overflow-x-auto no-scrollbar mb-4 sm:mb-6">
+              <div 
+                className="overflow-x-auto table-scroll-region no-scrollbar mb-4 sm:mb-6"
+                tabIndex={0}
+                role="region"
+                aria-label={`Bảng xếp hạng ${g.name}`}
+              >
                 <table className="w-full text-xs sm:text-sm text-left">
                   <thead className="text-[10px] sm:text-xs text-gray-400 uppercase bg-gray-50">
                     <tr>

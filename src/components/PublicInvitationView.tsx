@@ -226,7 +226,7 @@ export default function PublicInvitationView({ token, onBack }: Props) {
     return (
       <div className="min-h-screen bg-[#070708] text-white flex flex-col items-center justify-center p-6">
         <div className="bg-red-500/10 border border-red-500/20 p-8 rounded-3xl max-w-md w-full text-center space-y-4">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto animate-bounce" />
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
           <h2 className="text-xl font-bold uppercase tracking-tight">Access Error</h2>
           <p className="text-sm text-white/60 leading-relaxed">{error || "Something went wrong."}</p>
           <button
@@ -306,7 +306,7 @@ export default function PublicInvitationView({ token, onBack }: Props) {
               onClick={() => setIsRsvpOpen(true)}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
-              className="w-full py-4.5 px-6 bg-gradient-to-r from-[#D4FF00] via-[#E2FF33] to-[#D4FF00] text-black font-black text-xs sm:text-sm uppercase tracking-widest rounded-2xl shadow-[0_0_25px_rgba(212,255,0,0.15)] border border-[#E2FF33] transition-all flex items-center justify-center gap-3 relative overflow-hidden group cursor-pointer rsvp-glowing-trigger"
+              className="w-full py-4 px-6 bg-[#D4FF00] hover:bg-[#c2eb00] text-black font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl border border-[#D4FF00] transition-colors flex items-center justify-center gap-2.5 relative overflow-hidden group cursor-pointer"
             >
               <div className="absolute inset-0 bg-white/20 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300 pointer-events-none" />
               <span className="text-base sm:text-lg">✉</span>

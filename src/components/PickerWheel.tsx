@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Trash2, Plus, Volume2, VolumeX, Shuffle, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, Volume2, VolumeX, Shuffle, HelpCircle, Trophy, Dices, List } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 
@@ -63,6 +63,24 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
   const [spinning, setSpinning] = useState(false);
   const [winner, setWinner] = useState<Choice | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Modern Web Guidance: Escape key closes active overlay or navigates back
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (winner) {
+          setWinner(null);
+          setShowConfetti(false);
+        } else if (showBulkModal) {
+          setShowBulkModal(false);
+        } else {
+          onBack();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [winner, showBulkModal, onBack]);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rotationAngleRef = useRef(0);
@@ -441,9 +459,9 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
             <ArrowLeft size={20} />
           </button>
           <div className="min-w-0">
-            <span className="text-[9px] font-black text-[#D4FF00] uppercase tracking-widest block">VÒNG QUAY MAY MẮN</span>
-            <h1 className="text-xs sm:text-base font-black uppercase tracking-tight text-white/90 flex items-center gap-1.5 truncate">
-              🎲 BỐC THĂM / CHỌN ĐỘI
+            <span className="text-[10px] font-semibold text-[#D4FF00] uppercase tracking-wider block">Vòng quay may mắn</span>
+            <h1 className="text-xs sm:text-base font-bold tracking-tight text-white/90 flex items-center gap-1.5 truncate">
+              <Dices size={16} className="text-[#D4FF00] shrink-0" /> Bốc thăm / Chọn đội
             </h1>
           </div>
         </div>
@@ -461,19 +479,19 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
       <div className="flex lg:hidden bg-white/5 border-b border-white/10 p-1.5 justify-center gap-1.5">
         <button
           onClick={() => setMobileTab('wheel')}
-          className={`flex-1 max-w-[200px] py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
-            mobileTab === 'wheel' ? 'bg-[#D4FF00] text-black shadow-sm font-extrabold' : 'text-white/60 hover:text-white'
+          className={`flex-1 max-w-[200px] py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors active:scale-[0.98] ${
+            mobileTab === 'wheel' ? 'bg-[#D4FF00] text-black' : 'text-white/60 hover:text-white'
           }`}
         >
-          🎲 VÒNG QUAY
+          <Dices size={14} /> Vòng quay
         </button>
         <button
           onClick={() => setMobileTab('options')}
-          className={`flex-1 max-w-[200px] py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
-            mobileTab === 'options' ? 'bg-[#D4FF00] text-black shadow-sm font-extrabold' : 'text-white/60 hover:text-white'
+          className={`flex-1 max-w-[200px] py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors active:scale-[0.98] ${
+            mobileTab === 'options' ? 'bg-[#D4FF00] text-black' : 'text-white/60 hover:text-white'
           }`}
         >
-          📋 DANH SÁCH ({choices.length})
+          <List size={14} /> Danh sách ({choices.length})
         </button>
       </div>
 
@@ -501,9 +519,9 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
             <button
               onClick={spin}
               disabled={spinning || activeChoices.length < 2}
-              className={`w-full py-3.5 sm:py-4 px-8 bg-[#D4FF00] text-black font-black uppercase tracking-wider rounded-2xl active:scale-95 transition-transform text-xs sm:text-sm hover:opacity-90 disabled:opacity-30 disabled:scale-100 flex items-center justify-center gap-2 shadow-lg shadow-[#D4FF00]/15`}
+              className="w-full py-3.5 sm:py-4 px-8 bg-[#D4FF00] hover:bg-[#c2eb00] text-black font-bold rounded-xl active:scale-[0.98] transition-colors text-xs sm:text-sm disabled:opacity-30 disabled:scale-100 flex items-center justify-center gap-2 cursor-pointer"
             >
-              🎲 QUAY NGAY ({activeChoices.length} Ô)
+              <Dices size={16} /> Quay ngay ({activeChoices.length} ô)
             </button>
             <button
               onClick={() => setMobileTab('options')}
@@ -724,7 +742,12 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
       {/* Winner Celebration Modal */}
       <AnimatePresence>
         {winner && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-300 modal-contain-scroll"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="winner-announcement-title"
+          >
             {/* confetti particles using CSS animations */}
             {showConfetti && (
               <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -753,37 +776,36 @@ export default function PickerWheel({ onBack }: { onBack: () => void }) {
             )}
 
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
+              initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              className="bg-gradient-to-b from-[#18181b] to-[#0a0a0c] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-[0_0_50px_rgba(212,255,0,0.15)] text-center space-y-6 relative overflow-hidden"
+              exit={{ scale: 0.96, opacity: 0 }}
+              className="bg-[#161719] border border-white/10 rounded-2xl p-7 max-w-sm w-full shadow-2xl text-center space-y-5 relative overflow-hidden"
             >
-              {/* Top cup / medal glow */}
-              <div className="w-16 h-16 bg-[#D4FF00]/10 border border-[#D4FF00]/20 rounded-full flex items-center justify-center mx-auto animate-bounce">
-                <span className="text-3xl">🏆</span>
+              <div className="w-14 h-14 bg-[#D4FF00]/10 border border-[#D4FF00]/25 rounded-2xl flex items-center justify-center mx-auto text-[#D4FF00]">
+                <Trophy size={28} />
               </div>
 
-              <div className="space-y-2">
-                <span className="text-[10px] font-black text-[#D4FF00] uppercase tracking-widest animate-pulse">
-                  THE WINNER IS!
+              <div className="space-y-1.5">
+                <span className="text-xs font-semibold text-[#D4FF00] uppercase tracking-wider">
+                  Kết quả bốc thăm
                 </span>
-                <h2 className="text-3xl font-black text-white break-words tracking-tight uppercase px-4">
+                <h2 id="winner-announcement-title" className="text-2xl font-bold text-white break-words tracking-tight px-2">
                   {winner.name}
                 </h2>
               </div>
 
-              <div className="flex flex-col gap-3 pt-4">
+              <div className="flex flex-col gap-2.5 pt-2">
                 <button
                   onClick={handleRemoveWinner}
-                  className="w-full py-3 bg-[#D4FF00] text-black font-black rounded-2xl active:scale-95 transition-transform text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-lg shadow-[#D4FF00]/10"
+                  className="w-full py-3 bg-[#D4FF00] hover:bg-[#c2eb00] text-black font-semibold rounded-xl active:scale-[0.98] transition-colors text-xs flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  🗑️ REMOVE FROM WHEEL
+                  <Trash2 size={14} /> Xóa khỏi vòng quay
                 </button>
                 <button
                   onClick={() => { setWinner(null); setShowConfetti(false); }}
-                  className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-2xl active:scale-95 transition-transform text-xs uppercase tracking-wider"
+                  className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold rounded-xl active:scale-[0.98] transition-colors text-xs cursor-pointer"
                 >
-                  CLOSE (KEEP TEAM)
+                  Đóng (Giữ lại tên)
                 </button>
               </div>
             </motion.div>

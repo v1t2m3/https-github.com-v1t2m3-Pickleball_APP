@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { Users, Shield, ArrowLeft, Trash2, Edit2, Plus, Trophy, ChevronRight, Upload, Mail, CheckSquare, Square, KeyRound, ShieldCheck, Check, X, SlidersHorizontal, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Tournament } from '../types';
@@ -98,22 +99,22 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
 
 export const PRESETS = [
   {
-    name: "🎯 Trọng tài sân",
+    name: "Trọng tài sân",
     description: "Chỉ chấm điểm trận đấu và xem VĐV",
     perms: ["matches:score", "players:view"]
   },
   {
-    name: "📋 Ban Chuyên môn / Thư ký",
+    name: "Ban Chuyên môn / Thư ký",
     description: "Quản lý VĐV, đội, bảng đấu, lịch sân, bốc thăm",
     perms: ["players:manage", "players:view", "teams:manage", "draw:manage", "groups:manage", "bracket:manage", "schedule:manage", "referee:assign", "matches:score"]
   },
   {
-    name: "💌 Ban Truyền thông & Khách mời",
+    name: "Ban Truyền thông & Khách mời",
     description: "Thiết kế thiệp, danh sách khách và chia sẻ thiệp",
     perms: ["invitations:design", "invitations:guests", "invitations:share", "players:view"]
   },
   {
-    name: "⚡ Toàn quyền (Super Admin)",
+    name: "Toàn quyền (Super Admin)",
     description: "Có đầy đủ mọi quyền trong hệ thống",
     perms: ["*"]
   }
@@ -127,6 +128,7 @@ interface Props {
 
 export default function AdminPanel({ onBack, onManageTournament, initialTab }: Props) {
   const { isAdmin, hasPermission, hasAnyPermission } = useAuth();
+  const toast = useToast();
   const defaultTab = initialTab || (isAdmin ? 'users' : hasPermission('players:manage') ? 'players' : hasAnyPermission(['invitations:design', 'invitations:guests']) ? 'invitations' : 'tournaments');
   const [activeTab, setActiveTab] = useState<'users' | 'players' | 'tournaments' | 'invitations'>(defaultTab);
   const [users, setUsers] = useState<any[]>([]);
@@ -160,10 +162,10 @@ export default function AdminPanel({ onBack, onManageTournament, initialTab }: P
           [type === 'banner' ? 'banner_url' : 'poster_url']: response.url
         }) : null);
       }
-      alert(`${type === 'banner' ? 'Banner' : 'Poster'} uploaded successfully!`);
+      toast.success(`Đã tải lên ${type === 'banner' ? 'Banner' : 'Poster'} thành công!`);
     } catch (error: any) {
       console.error("Upload failed", error);
-      alert(`Failed to upload ${type}: ${error.message || "Unknown error"}`);
+      toast.error(`Lỗi tải lên ${type}: ${error.message || "Lỗi không xác định"}`);
     } finally {
       if (type === 'banner') setUploadingBanner(false);
       else setUploadingPoster(false);
@@ -197,6 +199,20 @@ export default function AdminPanel({ onBack, onManageTournament, initialTab }: P
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Modern Web Guidance: Escape key closes active sub-dialogs or the panel itself
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (editingTournament) setEditingTournament(null);
+        else if (editingUserPerms) setEditingUserPerms(null);
+        else if (editingPlayer) setEditingPlayer(null);
+        else onBack();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [editingTournament, editingUserPerms, editingPlayer, onBack]);
 
   const handleCreateUser = async () => {
     try {
@@ -268,21 +284,28 @@ export default function AdminPanel({ onBack, onManageTournament, initialTab }: P
   };
 
   const handleDeleteUser = async (id: number) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa tài khoản này không? Thao tác này không thể hoàn tác.')) return;
     try {
       await api(`/users/${id}`, { method: 'DELETE' });
+      toast.success('Đã xóa tài khoản thành công!');
       fetchData();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      toast.error(`Lỗi khi xóa tài khoản: ${e.message || 'Không thể xóa tài khoản'}`);
     }
   };
 
   const handleDeleteTournament = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this tournament? All related data (matches, teams, groups) will be lost.')) return;
+    const targetTournament = tournaments.find(t => t.id === id);
+    const tourName = targetTournament ? `"${targetTournament.name}"` : '';
+    if (!confirm(`Bạn có chắc chắn muốn xóa giải đấu ${tourName} không?\n\nToàn bộ dữ liệu liên quan (trận đấu, bảng đấu, đội thi đấu) sẽ bị xóa vĩnh viễn.`)) return;
     try {
       await api(`/tournaments/${id}`, { method: 'DELETE' });
+      toast.success(`Đã xóa giải đấu ${tourName} thành công!`);
       fetchData();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      toast.error(`Lỗi khi xóa giải đấu: ${e.message || 'Không thể xóa giải đấu'}`);
     }
   };
 
@@ -293,10 +316,12 @@ export default function AdminPanel({ onBack, onManageTournament, initialTab }: P
         method: 'PUT',
         body: JSON.stringify(editingTournament)
       });
+      toast.success('Cập nhật thông tin giải đấu thành công!');
       setEditingTournament(null);
       fetchData();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      toast.error(`Lỗi khi cập nhật giải đấu: ${e.message || 'Không thể cập nhật'}`);
     }
   };
 
@@ -310,10 +335,12 @@ export default function AdminPanel({ onBack, onManageTournament, initialTab }: P
           tournament_ids: newPlayer.tournament_ids.map((id: any) => parseInt(id))
         }) 
       });
+      toast.success('Thêm VĐV thành công!');
       setNewPlayer({ name: '', phone: '', level: 'Beginner', birth_year: '', gender: 'M', team_name: '', tournament_ids: [] });
       fetchData();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      toast.error(`Lỗi khi thêm VĐV: ${e.message || 'Không thể thêm VĐV'}`);
     }
   };
 
@@ -328,19 +355,24 @@ export default function AdminPanel({ onBack, onManageTournament, initialTab }: P
           tournament_ids: editingPlayer.tournament_ids.map((id: any) => parseInt(id))
         })
       });
+      toast.success('Cập nhật thông tin VĐV thành công!');
       setEditingPlayer(null);
       fetchData();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      toast.error(`Lỗi khi cập nhật VĐV: ${e.message || 'Không thể cập nhật VĐV'}`);
     }
   };
 
   const handleDeletePlayer = async (id: number) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa VĐV này không?')) return;
     try {
       await api(`/players/${id}`, { method: 'DELETE' });
+      toast.success('Đã xóa VĐV thành công!');
       fetchData();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      toast.error(`Lỗi khi xóa VĐV: ${e.message || 'Không thể xóa VĐV'}`);
     }
   };
 
@@ -372,7 +404,7 @@ export default function AdminPanel({ onBack, onManageTournament, initialTab }: P
               <Users size={16} /> VẬN ĐỘNG VIÊN
             </button>
           )}
-          {(isAdmin || hasAnyPermission(['tournaments:create', 'tournaments:edit'])) && (
+          {(isAdmin || hasAnyPermission(['tournaments:create', 'tournaments:edit', 'tournaments:delete'])) && (
             <button
               onClick={() => setActiveTab('tournaments')}
               className={cn("px-3.5 sm:px-6 py-2 sm:py-3 rounded-xl font-bold flex items-center gap-1.5 sm:gap-2 whitespace-nowrap text-xs sm:text-sm active:scale-95 transition-all shrink-0", activeTab === 'tournaments' ? 'bg-[#D4FF00] text-black shadow-sm font-black' : 'bg-white text-gray-600 hover:bg-gray-50')}
@@ -879,12 +911,24 @@ export default function AdminPanel({ onBack, onManageTournament, initialTab }: P
                           Manage <ChevronRight size={16} />
                         </button>
                       )}
-                      <button onClick={() => setEditingTournament(t)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-full bg-blue-50">
-                        <Edit2 size={18} />
-                      </button>
-                      <button onClick={() => handleDeleteTournament(t.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-full bg-red-50">
-                        <Trash2 size={18} />
-                      </button>
+                      {(isAdmin || hasPermission('tournaments:edit')) && (
+                        <button 
+                          onClick={() => setEditingTournament(t)} 
+                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-full bg-blue-50"
+                          title="Chỉnh sửa giải đấu"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                      )}
+                      {(isAdmin || hasPermission('tournaments:delete')) && (
+                        <button 
+                          onClick={() => handleDeleteTournament(t.id)} 
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-full bg-red-50"
+                          title="Xóa giải đấu"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

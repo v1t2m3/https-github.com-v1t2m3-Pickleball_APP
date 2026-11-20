@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Tournament, Match } from '../../types';
-import { Trophy, Sparkles, Layers, Settings, X, Shield, Medal } from 'lucide-react';
+import { Trophy, Sparkles, Layers, Settings, X, Shield, Medal, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { getSocket } from '../../lib/socket';
 import BracketBuilderModal from '../BracketBuilderModal';
 
 function cn(...inputs: ClassValue[]) {
@@ -39,6 +40,20 @@ export default function BracketTab({ tournament, matches, isOwner, onReload }: P
         .catch(err => console.error(err));
     }
   }, [isAdmin]);
+
+  // Real-time synchronization
+  useEffect(() => {
+    const socket = getSocket();
+    const handleUpdate = () => {
+      onReload?.();
+    };
+    socket.on('schedule_updated', handleUpdate);
+    socket.on('match_updated', handleUpdate);
+    return () => {
+      socket.off('schedule_updated', handleUpdate);
+      socket.off('match_updated', handleUpdate);
+    };
+  }, [onReload]);
 
   const handleOpenScheduler = (m: Match) => {
     setSelectedMatchForEdit(m);
@@ -80,6 +95,9 @@ export default function BracketTab({ tournament, matches, isOwner, onReload }: P
 
   // Group matches by round (filtering out group stage matches)
   const knockoutMatches = matches.filter(m => !m.group_id);
+  const groupMatches = matches.filter(m => !!m.group_id);
+  const pendingGroupMatches = groupMatches.filter(m => m.status !== 'completed');
+  const hasFinishedAllGroups = groupMatches.length > 0 && pendingGroupMatches.length === 0;
 
   // Sort rounds logically: Round of 16 -> Quarterfinals -> Semifinals -> Finals -> Third Place
   const roundOrder = ['Round of 16', 'Quarterfinals', 'Semifinals', 'Finals', 'Third Place'];
@@ -92,6 +110,14 @@ export default function BracketTab({ tournament, matches, isOwner, onReload }: P
   });
 
   const handleAutoGenerate = async () => {
+    if (groupMatches.length === 0) {
+      alert("Chưa có trận đấu vòng bảng nào được tạo. Vui lòng vào mục 'Groups & Standings' để chia bảng và thi đấu vòng bảng trước.");
+      return;
+    }
+    if (pendingGroupMatches.length > 0) {
+      alert(`Còn ${pendingGroupMatches.length} trận đấu vòng bảng chưa kết thúc. Cần hoàn thành tất cả các trận vòng bảng để có kết quả xếp hạng chính xác trước khi sinh nhánh đấu.`);
+      return;
+    }
     if (!confirm("Hệ thống sẽ tự động tổng hợp kết quả Nhất & Nhì của các bảng hiện tại để sinh nhánh đấu. Bạn có muốn tiếp tục?")) {
       return;
     }
@@ -114,28 +140,43 @@ export default function BracketTab({ tournament, matches, isOwner, onReload }: P
     return (
       <div className="max-w-3xl mx-auto py-12">
         {isOwner && isCombineFormat ? (
-          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-xl space-y-6 text-center">
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-xl space-y-6 text-center">
             <div className="inline-flex p-4 bg-[#D4FF00]/10 text-black rounded-full mb-2">
               <Trophy size={40} className="text-black" />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h3 className="text-xl font-black uppercase tracking-tight text-gray-900">KHỞI TẠO NHÁNH ĐẤU KNOCKOUT</h3>
-              <p className="text-sm text-gray-400 font-medium max-w-lg mx-auto">
-                Vòng bảng đang diễn ra. Khi các trận đấu vòng bảng kết thúc, bạn có thể tự động ghép cặp chéo hạt giống hoặc cấu hình phân hạt giống thủ công.
-              </p>
+              
+              {groupMatches.length === 0 ? (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs sm:text-sm font-semibold max-w-lg mx-auto flex items-center gap-2.5 text-left">
+                  <AlertCircle className="text-amber-600 shrink-0" size={20} />
+                  <span>Chưa có trận đấu vòng bảng nào được tạo. Vui lòng vào mục <strong>Groups & Standings</strong> để tạo bảng đấu, gán đội và sinh lịch thi đấu trước.</span>
+                </div>
+              ) : pendingGroupMatches.length > 0 ? (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl text-blue-900 text-xs sm:text-sm font-semibold max-w-lg mx-auto flex items-center gap-2.5 text-left">
+                  <AlertCircle className="text-blue-600 shrink-0" size={20} />
+                  <span>Vòng bảng đang diễn ra (Còn <strong>{pendingGroupMatches.length}</strong> trận chưa hoàn thành). Sau khi các trận vòng bảng kết thúc và có điểm xếp hạng, nhánh đấu sẽ được tự động xếp cặp.</span>
+                </div>
+              ) : (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-2xl text-green-900 text-xs sm:text-sm font-semibold max-w-lg mx-auto flex items-center gap-2.5 text-left">
+                  <CheckCircle2 className="text-green-600 shrink-0" size={20} />
+                  <span>Vòng bảng đã hoàn tất đầy đủ kết quả! Thứ hạng đã sẵn sàng. Hãy bấm nút dưới đây để ghép cặp chéo nhánh đấu Knockout.</span>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <button
                 onClick={handleAutoGenerate}
-                disabled={loading}
-                className="px-6 py-4 bg-[#D4FF00] hover:bg-[#bce600] text-black font-black text-sm rounded-2xl flex items-center justify-center gap-2 hover:scale-105 transition-all disabled:opacity-50 shadow-sm uppercase tracking-wider"
+                disabled={loading || !hasFinishedAllGroups}
+                className="px-6 py-4 bg-[#D4FF00] hover:bg-[#bce600] text-black font-black text-sm rounded-2xl flex items-center justify-center gap-2 hover:scale-105 transition-all disabled:opacity-40 disabled:hover:scale-100 shadow-sm uppercase tracking-wider cursor-pointer disabled:cursor-not-allowed"
+                title={!hasFinishedAllGroups ? "Cần hoàn tất vòng bảng trước khi tự động sinh nhánh đấu" : "Tự động xếp cặp chéo Nhất bảng này vs Nhì bảng kia"}
               >
                 <Sparkles size={16} /> {loading ? 'ĐANG KHỞI TẠO...' : 'TỰ ĐỘNG GHÉP CẶP CHÉO'}
               </button>
               <button
                 onClick={() => setBracketBuilderOpen(true)}
-                className="px-6 py-4 bg-black hover:bg-gray-800 text-white font-black text-sm rounded-2xl flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-sm uppercase tracking-wider"
+                className="px-6 py-4 bg-black hover:bg-gray-800 text-white font-black text-sm rounded-2xl flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-sm uppercase tracking-wider cursor-pointer"
               >
                 <Layers size={16} /> THỦ CÔNG CHỌN CẶP ĐẤU
               </button>
@@ -202,15 +243,15 @@ export default function BracketTab({ tournament, matches, isOwner, onReload }: P
                   {round}
                 </span>
                 {round.toLowerCase().includes('final') && !round.toLowerCase().includes('semifinal') && !round.toLowerCase().includes('quarterfinal') && (
-                  <div className="flex flex-col items-center mt-1 animate-bounce">
-                    <Trophy className="text-[#FFD700] drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]" size={26} fill="#b0b906ff" />
-                    <span className="text-[9px] font-extrabold text-[#b0b906ff] uppercase tracking-wider mt-0.5">CHAMPIONSHIP</span>
+                  <div className="flex flex-col items-center mt-1">
+                    <Trophy className="text-amber-500" size={24} fill="#eab308" />
+                    <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider mt-0.5">Chung kết</span>
                   </div>
                 )}
                 {round.toLowerCase().includes('third') && (
-                  <div className="flex flex-col items-center mt-1 animate-pulse">
-                    <Medal className="text-[#CD7F32] drop-shadow-[0_0_8px_rgba(205,127,50,0.4)]" size={26} fill="#ca7219ff" />
-                    <span className="text-[9px] font-extrabold text-[#ca7219ff] uppercase tracking-wider mt-0.5">3RD PLACE</span>
+                  <div className="flex flex-col items-center mt-1">
+                    <Medal className="text-amber-700" size={24} fill="#b45309" />
+                    <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider mt-0.5">Hạng 3</span>
                   </div>
                 )}
               </div>

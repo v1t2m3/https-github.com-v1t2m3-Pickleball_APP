@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Tournament, Match } from '../../types';
-import { Clock, Trophy, Settings, X, Building } from 'lucide-react';
+import { Clock, Trophy, Settings, X, Building, Calendar, AlertCircle } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { getSocket } from '../../lib/socket';
+import { useToast } from '../../contexts/ToastContext';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -19,9 +21,11 @@ interface Props {
 
 export default function ScheduleTab({ tournament, matches, isOwner, onReload }: Props) {
   const { user, isAdmin } = useAuth();
+  const { showToast } = useToast();
 
   // Grouping state for upcoming matches
   const [groupBy, setGroupBy] = useState<'none' | 'group' | 'court'>('none');
+  const [generatingSchedule, setGeneratingSchedule] = useState(false);
 
   // Referee and scheduling states
   const [users, setUsers] = useState<any[]>([]);
@@ -40,6 +44,36 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
         .catch(err => console.error(err));
     }
   }, [isAdmin]);
+
+  // Real-time synchronization
+  useEffect(() => {
+    const socket = getSocket();
+    const handleUpdate = () => {
+      onReload?.();
+    };
+    socket.on('schedule_updated', handleUpdate);
+    socket.on('match_updated', handleUpdate);
+    return () => {
+      socket.off('schedule_updated', handleUpdate);
+      socket.off('match_updated', handleUpdate);
+    };
+  }, [onReload]);
+
+  const handleGenerateGroupSchedule = async () => {
+    if (!confirm('Hệ thống sẽ tự động ghép các cặp đấu vòng tròn theo từng bảng trong mục Groups & Standings. Bạn có muốn tiếp tục?')) {
+      return;
+    }
+    setGeneratingSchedule(true);
+    try {
+      await api(`/tournaments/${tournament.id}/generate`, { method: 'POST' });
+      showToast('Đã sinh lịch thi đấu các cặp đấu thành công!', 'success');
+      onReload?.();
+    } catch (e: any) {
+      showToast(e.message || 'Lỗi khi tạo lịch thi đấu. Hãy chắc chắn đã tạo bảng đấu ở mục Groups & Standings.', 'error');
+    } finally {
+      setGeneratingSchedule(false);
+    }
+  };
 
   const handleOpenScheduler = (m: Match) => {
     setSelectedMatchForEdit(m);
@@ -187,6 +221,28 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
 
   return (
     <div className="space-y-8 sm:space-y-12">
+      {/* Empty State Banner when no matches */}
+      {matches.length === 0 && (
+        <div className="bg-white rounded-3xl p-8 sm:p-12 text-center border-2 border-dashed border-gray-200 max-w-lg mx-auto space-y-4">
+          <div className="p-4 bg-gray-50 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+            <Clock size={32} className="text-gray-400" />
+          </div>
+          <h3 className="text-lg sm:text-xl font-black uppercase tracking-tight text-gray-900">CHƯA CÓ LỊCH THI ĐẤU</h3>
+          <p className="text-xs sm:text-sm text-gray-500 font-medium">
+            Vui lòng tạo bảng đấu và gán các đội ở mục <strong>Groups & Standings</strong> trước, sau đó bấm nút bên dưới để tự động tạo các cặp đấu vòng tròn.
+          </p>
+          {isAdmin && (
+            <button
+              onClick={handleGenerateGroupSchedule}
+              disabled={generatingSchedule}
+              className="px-6 py-3 bg-[#D4FF00] hover:bg-[#bce600] text-black font-black text-xs sm:text-sm rounded-xl uppercase tracking-wider shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 mx-auto disabled:opacity-50"
+            >
+              <Calendar size={16} /> {generatingSchedule ? 'ĐANG KHỞI TẠO...' : 'SINH LỊCH THI ĐẤU VÒNG BẢNG'}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Live Matches Section */}
       {liveMatches.length > 0 && (
         <section>
@@ -201,16 +257,22 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
             {liveMatches.map(m => {
               // Calculate Match Point logic
               const matchPointInfo = getMatchPointInfo(m, tournament.scoring_format || '11_win_by_2');
-              const { isMatchPoint, team1HasMatchPoint, team2HasMatchPoint } = matchPointInfo;
+              const { isMatchPoint } = matchPointInfo;
+              const isFinals = m.round === 'Finals' || m.round === 'Chung kết';
+              const isChampionshipPoint = isMatchPoint && isFinals;
 
               return (
                 <div key={m.id} className="bg-[#0a0a0a] text-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl relative overflow-hidden border-2 border-[#D4FF00]">
-                  {/* Match Point Pulse Indicator */}
-                  {isMatchPoint && (
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-red-600 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-widest rounded-full animate-bounce shadow-[0_0_15px_rgba(239,68,68,0.7)] z-10 border border-red-400">
-                      🔥 MATCH POINT 🔥
+                  {/* Point Milestone Indicator */}
+                  {isChampionshipPoint ? (
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-amber-400 text-black text-[9px] font-bold uppercase tracking-wider rounded-full z-10 border border-amber-300">
+                      Championship Point
                     </div>
-                  )}
+                  ) : isMatchPoint ? (
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-red-600 text-white text-[9px] font-bold uppercase tracking-wider rounded-full z-10">
+                      Match Point
+                    </div>
+                  ) : null}
 
                   <div className="absolute top-0 right-0 py-1.5 px-3 sm:py-2 sm:px-4 bg-[#D4FF00] text-black font-black text-[9px] sm:text-[10px] uppercase tracking-widest rounded-bl-xl flex items-center gap-1.5 sm:gap-2">
                     <span>{m.court ? `${m.court} - Match ${m.match_order || 1}` : (m.group_name || `Round ${m.round}`)}</span>
@@ -230,8 +292,8 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                       <div className="text-xs sm:text-sm font-bold uppercase text-[#D4FF00] mb-1 sm:mb-2 flex items-center justify-center gap-1 truncate px-1">
                         <span className="truncate">{m.team1_name || 'TBD'}</span>
                         {m.serving_team_id === m.team1_id && (
-                          <span className="inline-flex items-center gap-0.5 bg-[#D4FF00] text-black text-[8px] sm:text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shrink-0 animate-pulse shadow-[0_0_8px_rgba(212,255,0,0.6)]">
-                            🎾 {isDoubles && `L${m.server_number || 1}`}
+                          <span className="inline-flex items-center gap-0.5 bg-[#D4FF00] text-black text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                            {isDoubles ? `Giao bóng ${m.server_number || 1}` : 'Giao bóng'}
                           </span>
                         )}
                       </div>
@@ -244,14 +306,26 @@ export default function ScheduleTab({ tournament, matches, isOwner, onReload }: 
                       <div className="text-xs sm:text-sm font-bold uppercase text-[#D4FF00] mb-1 sm:mb-2 flex items-center justify-center gap-1 truncate px-1">
                         <span className="truncate">{m.team2_name || 'TBD'}</span>
                         {m.serving_team_id === m.team2_id && (
-                          <span className="inline-flex items-center gap-0.5 bg-[#D4FF00] text-black text-[8px] sm:text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shrink-0 animate-pulse shadow-[0_0_8px_rgba(212,255,0,0.6)]">
-                            🎾 {isDoubles && `L${m.server_number || 1}`}
+                          <span className="inline-flex items-center gap-0.5 bg-[#D4FF00] text-black text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                            {isDoubles ? `Giao bóng ${m.server_number || 1}` : 'Giao bóng'}
                           </span>
                         )}
                       </div>
                       <div className="text-5xl sm:text-7xl font-black tracking-tighter tabular-nums">{m.score_team2}</div>
                     </div>
                   </div>
+
+                  {/* Referee Callout Display */}
+                  {m.serving_team_id && (
+                    <div className="mx-auto my-1 px-3 py-1 bg-white/5 border border-white/10 rounded-xl text-center max-w-xs">
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block">Hô điểm</span>
+                      <span className="text-sm sm:text-base font-black text-[#D4FF00] tracking-wider">
+                        {m.serving_team_id === m.team1_id
+                          ? `${m.score_team1} - ${m.score_team2}${isDoubles ? ` - ${m.server_number || 1}` : ''}`
+                          : `${m.score_team2} - ${m.score_team1}${isDoubles ? ` - ${m.server_number || 1}` : ''}`}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-white/10 flex flex-col items-center gap-0.5 sm:gap-1">
                     <span className="text-[9px] sm:text-[10px] font-bold tracking-widest opacity-60 uppercase">Match in Progress • Round {m.round}</span>

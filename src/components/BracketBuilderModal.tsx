@@ -30,6 +30,15 @@ export default function BracketBuilderModal({ tournament, onClose, onUpdate }: P
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Modern Web Guidance: Escape key closes modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   // Fetch initial teams, groups, and standings
   useEffect(() => {
     const fetchData = async () => {
@@ -208,14 +217,19 @@ export default function BracketBuilderModal({ tournament, onClose, onUpdate }: P
   };
 
   return (
-    <div className="fixed inset-0 bg-[#070708]/95 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white text-gray-900 w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border border-gray-100 flex flex-col max-h-[92vh]">
+    <div 
+      className="fixed inset-0 bg-[#070708]/95 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 modal-contain-scroll backdrop-contain-scroll"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="bracket-builder-heading"
+    >
+      <div className="bg-white text-gray-900 w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border border-gray-100 flex flex-col max-h-[92vh] modal-contain-scroll">
         {/* Header */}
         <header className="px-4 sm:px-6 py-3.5 sm:py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <Layers className="text-[#D4FF00] bg-black p-1.5 rounded-xl shrink-0" size={30} />
             <div className="min-w-0">
-              <h2 className="font-black text-sm sm:text-lg uppercase tracking-tight truncate">SETUP DRAW / SEEDING</h2>
+              <h2 id="bracket-builder-heading" className="font-black text-sm sm:text-lg uppercase tracking-tight truncate">SETUP DRAW / SEEDING</h2>
               <p className="text-[10px] sm:text-xs text-gray-400 font-medium truncate">Bốc thăm chia nhánh knockout hoặc gán hạt giống</p>
             </div>
           </div>
